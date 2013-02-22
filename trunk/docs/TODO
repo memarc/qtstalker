@@ -1,0 +1,32 @@
+To Do:
+======
+
+- documentation
+- create some howto docs for indicators
+- add more cursor behaviours to Plot
+- median lines chart objects
+- fibo time chart objects
+- update classes with a description of purpose, usage etc.
+- Improve source code documentation. Javadoc comments are utilised by Doxygen.
+- interactive scripting
+- complete backtesting plugins
+- add yahoo details code selection to the yahoo plugin (default is only name now)
+- chart zooming
+- add a date widget to charts that mimic 'the new style' we see on yahoo and google charts.
+- add defaults to all the plugins so we can cut down on explicit parms
+- implement 0.36 crosshair behaviour
+
+
+Priority
+========
+
+- add help to dialogs
+- key shortcuts
+
+
+
+Maybe some day:
+===============
+
+- support for options
+

@@ -1,0 +1,87 @@
+#!/bin/sh
+
+printf "Determining Qt version ..."
+qtVersionMajorRequired="4"
+qtVersionMinorRequired="8"
+qtMessage="This version of Qtstalker requires Qt$qtVersionMajorRequired.$qtVersionMinorRequired or better"
+qmakeCmd=`command -v qmake`
+qtVersionOk="false"
+if [ -z "$qmakeCmd" ] ; then
+  qmakeOk="false"
+  printf " not found\n"
+  printf "ERROR: Qt is not properly installed - cannot find 'qmake'\n"
+else
+  qmakeOk="true"
+  qtVersionOk="true"
+  qtVersion=`"$qmakeCmd" --version 2>&1 | sed -n '/[0-9]\.[0-9]\.[0-9]/s/^.*\([0-9]\.[0-9]\.[0-9]\).*$/\1/p'`
+  printf " %s ..." "$qtVersion"
+  qtVersionMajor=`echo $qtVersion | sed 's/^\([0-9]\)\..*$/\1/'`
+  qtVersionMinor=`echo $qtVersion | sed 's/^[0-9]\.\([0-9]\)\..*$/\1/'`
+  if [ $qtVersionMajor -ne $qtVersionMajorRequired ]; then
+    qtVersionOk="false"
+  elif [ $qtVersionMinor -lt $qtVersionMinorRequired ]; then
+    qtVersionOk="false"
+  fi
+  if [ "$qtVersionOk" != "true" ]; then
+    printf " not okay\n"
+    printf "ERROR: %s\n" "$qtMessage"
+  else
+    printf " okay\n"
+  fi
+fi
+
+printf "Determining TA-Lib version ..."
+talibCmd=`command -v ta-lib-config`
+if [ -z "$talibCmd" ] ; then
+  talibOk="false"
+  printf " not found\n"
+  printf "ERROR: TA-Lib is not properly installed - cannot find 'ta-lib-config'\n"
+else
+  talibOk="true"
+  talibVersion=`"$talibCmd" --version`
+  printf " %s ... okay\n" "$talibVersion"
+fi
+if [ "$qmakeOk" != "true" ] || [ "$qtVersionOk" != "true" ] || [ "$talibOk" != "true" ]; then
+  printf "ERROR: There were configuration issues. See docs/install.html\n"
+  exit 1
+fi
+
+if [ -e "docs/api/index.html" ] ; then
+  if [ -e "Makefile" ] ; then
+    if [ "Makefile" -nt "docs/api/index.html" ] ; then
+      printf "\nNOTE: Source code API documentation might be out-of-date.\n"
+      printf "See instructions at docs/api/api.html\n"
+    fi
+  fi
+else
+  printf "\nNOTE: Source code API documentation is not yet built.\n"
+  printf "See instructions at docs/api/api.html\n"
+fi
+
+printf "\nBuilding Makefile ...\n"
+qmake "DEFINES += QT_NO_COMPAT" "CONFIG += qt" -o Makefile qtstalker.pro
+if [ "$?" -ne "0" ]; then
+  printf "ERROR: See configuration messages above.\n"
+  exit 1
+else
+  printf "Done\n"
+fi
+
+printf "\nIndexing and creating the documentation collection ...\n"
+qcCmd=`command -v qcollectiongenerator`
+if [ -z "$qcCmd" ] ; then
+  printf "ERROR: Cannot find 'qcollectiongenerator'.\n"
+else
+  $qcCmd docs/doc.qhcp -o docs/doc.qhc
+  printf "Done\n"
+fi
+
+printf "\nCreating national language files in i18n ...\n"
+qmake -project -r -o qtstalker_single.pro .
+lupdate qtstalker_single.pro
+printf "Done\n"
+printf "Compiling existing translations ...\n"
+lrelease i18n/qtstalker_??.ts
+printf "Done\n"
+
+printf "\nYou may now 'make && make install'\n"

@@ -1,0 +1,89 @@
+20130218:  Ready...set...go...
+
+           Up until recently this project was heading down a path which leads to becoming giant, bloated,
+           complex multi-threaded monster that no one developer can grasp. Doomed to stagnate once the
+           core team has moved on. Instead I chose to approach the code from the opposite side.
+           Revisit the tried and true method of chaining together simple tools to create new ones.
+
+           Over the last 5 years, 0.37 has been in various states of development. A few near releases
+           and many overhauls. Long story short. The final framework is just about ready. All that remains
+           now is bug fixes and improvements. I say 'framework' rather than an app in the same regard
+           as the Qt development kit is a c++ framework rather than just gui toolkit. I envision
+           this project to be a complete technical analysis development toolkit. For app building,
+           charting, number crunching, real time analysis etc. I believe this is all possible now.
+
+
+           USAGE:
+           ------
+
+           Qtstalker is now just a small app that derives its functionality from plugins. The app 'ota'
+           is given a command line switch that loads the given plugin. For example, if we wanted to
+           download some quotes from yahoo, we would enter this command:
+
+           ota -a YahooHistory -p yahoo
+
+           (ota) the main app
+           (-a YahooHistory) the app plugin (only plugins of type 'app' will work in this way)
+           (-p yahoo) the user profile that data/settings are associated with. (defaults to 'default')
+
+           The profile concept is used so that we may run multiple copies of the same app concurrently.
+           
+           Available apps currently are:
+
+                CSV - csv quote importer
+                IndicatorPlot - most of the old qtstalker gui is here
+                YahooHistory - download quotes
+
+
+           NOTES:
+           ------
+
+           The only required libraries are Qt and TA-Lib. Qwt is no longer used. I would eventually
+           like to port the TA-Lib functions into the plugins as a few do now and remove it so we only
+           have Qt required. Also note that libqtstalker has been removed.
+
+           Indicators are now manually constructed by the user. We have a nice simple gui to chain together
+           various plugins to build an indicator. Follows the old CUS indicator idea of a linear step by step
+           methodology.
+
+           Example indicators found in plugins/IndicatorPlot/examples will be installed as global indicators.
+           A global indicator is a template indicator that is copied and modified within a profile.
+           Hence the distinction between global and local. When a new indicator is created/modified it remains
+           global to all profiles. However, once it is copied to a profile (using the Add Indicator option),
+           the changes all remain local to the profile only. This is how we can make indicators specific
+           to certain profiles and have multiple versions of the same indcator without confusion.
+
+           Indicators can have more than one plot associated. Multiple plots are available. They are
+           grouped together in a grid the user creates and considered to be one unit.
+
+           IndicatorPlot tabs have a context menu you use to move/edit/delete indicators with.
+
+           The global and local concepts are important to understand as some plugins are global and some are
+           local. For examples, the YahooHistory plugin creates global quote data that other plugins may
+           use. The IndicatorPlot plugin is local. The documentation will explain once completed.
+
+           Documentation will only be available once a plugin is deemed stable. Currently only a few plugins
+           would be stable enough to document. Stability just means the api is finished.
+
+           Once we fix the current bugs we can start to add functionality by way of more plugins. Such
+           as a scanner, back testing, quote monitors etc.
+
+           Installation is easier than ever. Users don't need root permissions anymore. Everything is installed
+           into the OTA home directory. This removes DLL hell and makes removal/copying simple.
+           The directory structure currently is:
+
+                bin/ - executables (the ota binary is here)
+                lib/ - plugins
+                docs/ - docs
+                */ - each plugin gets its own sub directory to store all its data
+
+           If you delete a plugin sub directory you delete everything associated with it. ie. YahooHistory
+           directory contains all your yahoo quotes! Be warned.
+
+           Everything with the exception of quote data is stored in text files for simplicity.
+
+           The first compile will be a long one. On my dual core laptop it is just under 30 minutes.
+           However, once completed, subsequent compiles will be very quick as only the plugins modified
+           need be recompiled.
+
+

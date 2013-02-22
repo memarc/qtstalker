@@ -1,0 +1,215 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+  <link rel="stylesheet" type="text/css" href="qtstalker.css" media="screen">
+  <script type="text/javascript" src="qtstalker.js">
+ </script>
+  <title>Qtstalker: Basic Installation</title>
+</head>
+
+<body>
+
+<div id="content">
+
+<div id="rightPanel">
+
+<div id="version">
+</div>
+
+<div id="toc">
+<hr>
+<ul>
+  <li><a href="index.html">Home</a></li>
+  <li><a href="toc.html">Table of Contents</a></li>
+</ul>
+</div>
+</div>
+
+<h1>Qtstalker: Basic Installation</h1>
+
+<h2 id="requirements">Requirements and dependencies</h2>
+<ul>
+  <li>A Linux or FreeBSD compatible or Mac OS X operating system.</li>
+  <li><a href="http://qt.nokia.com/">Qt</a> development library. At least Qt
+    4.6 version.</li>
+  <li><a href="http://qwt.sourceforge.net/">Qwt</a> graphics extension library.
+    Version 5.2.x</li>
+  <li><a href="http://ta-lib.org/">TA-Lib</a> Technical Analysis Library. At
+    least ta-lib-0.3.0 version. See below.</li>
+  <li>Supporting libraries for any programming language that you might use for
+    script tools, e.g. Perl libwww, Perl Text::CSV
+  </li>
+</ul>
+
+<p>When upgrading Qtstalker from a previous source version, see the <a
+href="#upgrade">notes</a> below. </p>
+
+<p>See notes below about <a href="#where">where</a> stuff gets installed. </p>
+<a name="packages"></a> 
+
+<h2 id="packages">Installing Qtstalker via packages</h2>
+
+<p>Packages are available for some operating systems. (Warning: Packages are often out-of-date.)</p>
+<ul>
+  <li><a href="http://www.zwets.com/qtstalker/">Debian packages</a></li>
+</ul>
+<a name="source"></a> 
+
+<h2 id="source">Installing Qtstalker from source</h2>
+
+<p>
+The dependencies are easy to install from their source.
+You might be able to install these using package managers. 
+However use the examples of each dependency to ensure proper installation,
+before complaining about Qtstalker.
+</p>
+
+<p><strong>Important (Qt):</strong> Ensure that Qt is installed properly.
+Ensure that '<code>qmake</code>' and friends are available (e.g. add
+<code>/path/to/qt/bin</code> to your <code>$PATH</code> <a
+href="http://en.wikipedia.org/wiki/Environment_variable">environment
+variable</a>).
+Do '<code>which qmake</code>' and '<code>which lupdate</code>' etc. to ensure
+that these are properly installed.
+Ensure that the Qt '<code>qtdemo</code>' application can be started.
+</p>
+
+<p><strong>Important (Qwt):</strong> Ensure that Qwt is installed properly.
+Ensure that its "examples" can be used.
+Follow its installation
+<a href="http://qwt.sourceforge.net/qwtinstall.html">instructions</a>,
+especially about the "shared library" location.
+</p>
+
+<p><strong>Important (TA-Lib):</strong> Ensure that TA-Lib is installed
+properly. Also ensure that the '<code>ta-lib-config</code>' program is
+available on your <code>$PATH</code> environment variable. Do '<code>which
+ta-lib-config</code>' to ensure that this is properly installed. </p>
+
+<p>If you installed Qt or Qwt or TA-Lib at a non-standard location, then edit the
+<code>qtstalker.config</code> file (e.g. "<code>INCLUDEPATH +=
+/opt/local/include/ta-lib</code>"). </p>
+
+<h3>Build and install Qtstalker</h3>
+
+<p>See important pre-requisite notes <a href="#source">above</a>.</p>
+<p>If you have non-standard locations for the dependencies or installation
+locations, then see notes below about the <code>qtstalker.config</code> file
+before running <code>configure</a>.
+</p>
+<ul>
+  <li><code>./configure</code> (this will create the Makefiles, etc.)</li>
+  <li><code>make</code></li>
+  <li><code>sudo make install</code> (i.e. as superuser)</li>
+</ul>
+<p>See additional instructions for <a href="install-macx.html">Mac OS X</a>.</p>
+
+<h2 id="troubleshooting">Trouble building or running?</h2>
+
+<h3 id="config">Non-standard locations for dependencies or installation</h3>
+<p>
+Perhaps there was trouble finding your supporting products, for example
+if Qt or Qwt or TA-Lib is installed at a non-standard location, then edit the
+<code>qtstalker.config</code> file to specify your locations
+(e.g. "<code>INCLUDEPATH += /opt/local/include/ta-lib</code>") and then do
+'<code>make distclean</code>' before doing the normal configure-and-make process.
+</p>
+
+<h3 id="qwt-lib">Supporting demos</h3>
+<p>
+Ensure that the Qt examples and Qwt examples and demonstrations can be utilised.
+Unfortunately some package managers do not install these demos.
+</p>
+<p>
+The most likely error is that the Qwt libraries cannot be found.
+See <a href="#source">notes</a> above.
+</p>
+
+<h3 id="bit64">Building on 64-bit systems</h3>
+<p>
+First ensure that your Qt has been built for 64-bit systems. Recent versions do detect that automatically.
+If your Qtstalker is having trouble, then try this: edit the Qtstalker "<code>configure</code>" file to tweak the
+"qmake" invocation to include "CONFIG += qt x86_64"
+</p>
+
+<h3 id="ldconfig">Setting ldconfig</h3>
+
+<p>On some Linux systems the following error might occur when you start Qtstalker ...</p>
+<p><code>/usr/local/bin/qtstalker: error while loading shared libraries:
+    libqtstalker.so.0: cannot open shared object file: No such file or
+    directory</code></p>
+    <p>Fix this by adding <code>/usr/local/lib</code>
+    to your <code>/etc/ld.so.conf</code> file and run <code>ldconfig -v</code>
+    (as root).</p>
+
+<h3 id="clean">Clean build</h3>
+<p>
+If you have troubles, then clean up and start again. Do this:
+</p>
+<pre>
+sudo make uninstall
+make distclean
+edit qtstalker.config (if necessary)
+./configure
+make
+sudo make install
+</pre>
+<p>
+To completely clean your user workspace, do this before starting Qtstalker:
+</p>
+<pre>
+rm -rf ~/.qtstalker
+</pre>
+<p>
+You might also need to remove the user configuration settings files.
+See <a href="#settings">notes</a> below.
+</p>
+
+<h2 id="where">Where does stuff get installed</h2>
+<ul>
+  <li>The executable 'qtstalker' will be copied to the
+    <code>/usr/local/bin</code> directory</li>
+  <li>The library will be copied to <code>/usr/local/lib</code> directory</li>
+  <li>The translation files will be copied to
+    <code>/usr/local/share/qtstalker/i18n</code> directory</li>
+  <li>Some example indicator scripts will be copied to
+    <code>/usr/local/share/qtstalker/indicator</code> directory</li>
+  <li>The docs will be copied to
+    <code>/usr/local/share/doc/qtstalker/html</code> directory (see toc.html
+    for the table of contents)</li>
+</ul>
+<p>
+Alternative installation locations can be configured in the
+<code>qtstalker.config</code> file.
+</p>
+
+<p id="workspace">The user workspace is in your home at <code>~/.qtstalker/</code> directory.  </p>
+
+<p id="settings">The user configuration settings on Linux systems is at <code>~/.qtstalkerrc/</code> file.
+On Mac OS X it is held in preferences <a href="install-macx.html#where">plist</a> files.
+</p>
+
+<a name="upgrade"></a> 
+
+<h2>Updating from a previous version</h2>
+
+<p>If you are updating from a previous source version already installed on your
+system, it is best that you first uninstall the previous version before you
+build and install the upgraded version. Doing this will better ensure a problem-free
+upgrade. Many upgrade errors can be caused by old plugins and libraries hanging
+around complicating things. You can uninstall the old version by doing
+<code>'sudo make uninstall'</code> from the top directory of the <b>old</b>
+source install. Or if you had used a package manager to install the old version,
+then use that to uninstall.</p>
+
+<h2>Using the current development source</h2>
+
+<p>See instructions for <a href="dev.html">using CVS</a>. </p>
+
+</div>
+<div id="bottom-spacer">
+<!-- Spacer so that can link directly to certain items in the list above. -->
+</div>
+</body>
+</html>
