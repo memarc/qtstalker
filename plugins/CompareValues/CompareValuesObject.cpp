@@ -32,13 +32,15 @@ CompareValuesObject::CompareValuesObject (QString profile, QString name)
   _plugin = QString("CompareValues");
   _type = QString("indicator");
   _op = 2;
-  _outputKey = QString("R");
+  _outputKey = QString("v");
   _inputObject = QString("symbol");
   _input2Object = QString("symbol");
   _inputKey = QString("C");
   _input2Key = QString("C");
   _offset = 0;
   _offset2 = 0;
+  _constant = FALSE;
+  _constantValue = 0;
   _hasOutput = TRUE;
   
   _commandList << QString("update");
@@ -48,6 +50,8 @@ CompareValuesObject::CompareValuesObject (QString profile, QString name)
   _commandList << QString("load");
   _commandList << QString("save");
   _commandList << QString("output_keys");
+  _commandList << QString("value");
+  _commandList << QString("size");
   
   _opList << QString("<");
   _opList << QString("<=");
@@ -98,6 +102,12 @@ CompareValuesObject::message (ObjectCommand *oc)
     case 6:
       rc = outputKeys(oc);
       break;
+    case 7:
+      rc = value(oc);
+      break;
+    case 8:
+      rc = size(oc);
+      break;
     default:
       break;
   }
@@ -119,11 +129,15 @@ CompareValuesObject::update (ObjectCommand *oc)
   }
   
   // input2 object
-  Object *input2 = (Object *) oc->getObject(_input2Object);
-  if (! input2)
+  Object *input2 = 0;
+  if (! _constant)
   {
-    qDebug() << "CompareValuesObject::update: invalid" << _input2Object;
-    return 0;
+    input2 = (Object *) oc->getObject(_input2Object);
+    if (! input2)
+    {
+      qDebug() << "CompareValuesObject::update: invalid" << _input2Object;
+      return 0;
+    }
   }
   
   // get input bars
@@ -136,12 +150,17 @@ CompareValuesObject::update (ObjectCommand *oc)
   QMap<int, Data *> in = toc.map();
   
   // get input2 bars
-  if (! input2->message(&toc))
+  QMap<int, Data *> in2;
+  if (! _constant)
   {
-    qDebug() << "CompareValuesObject::update: message error" << input2->plugin() << toc.command();
-    return 0;
+    if (! input2->message(&toc))
+    {
+      qDebug() << "CompareValuesObject::update: message error" << input2->plugin() << toc.command();
+      return 0;
+    }
+    
+    in2 = toc.map();
   }
-  QMap<int, Data *> in2 = toc.map();
   
   QList<int> keys = in.keys();
   for (int pos = 0; pos < keys.size(); pos++)
@@ -158,13 +177,17 @@ CompareValuesObject::update (ObjectCommand *oc)
       continue;
     double v = d->value(_inputKey).toDouble();
     
-    d = in2.value(keys.at(pos - _offset2));
-    if (! d)
-      continue;
+    double v2 = _constantValue;
+    if (! _constant)
+    {
+      d = in2.value(keys.at(pos - _offset2));
+      if (! d)
+        continue;
     
-    if (! d->contains(_input2Key))
-      continue;
-    double v2 = d->value(_input2Key).toDouble();
+      if (! d->contains(_input2Key))
+        continue;
+      v2 = d->value(_input2Key).toDouble();
+    }
     
     switch (_op)
     {
@@ -204,7 +227,8 @@ int
 CompareValuesObject::dialog (ObjectCommand *oc)
 {
   CompareValuesDialog *dialog = new CompareValuesDialog(oc->getObjects(), _opList, _name);
-  dialog->setSettings(_inputObject, _inputKey, _offset, _input2Object, _input2Key, _offset2, _op);
+  dialog->setSettings(_inputObject, _inputKey, _offset, _input2Object,
+                      _input2Key, _offset2, _op, _constant, _constantValue);
   connect(dialog, SIGNAL(signalDone(void *)), this, SLOT(dialogDone(void *)));
   dialog->setModified(FALSE);
   dialog->show();
@@ -215,7 +239,7 @@ void
 CompareValuesObject::dialogDone (void *dialog)
 {
   CompareValuesDialog *d = (CompareValuesDialog *) dialog;
-  d->settings(_inputObject, _inputKey, _offset, _input2Object, _input2Key, _offset2, _op);
+  d->settings(_inputObject, _inputKey, _offset, _input2Object, _input2Key, _offset2, _op, _constant, _constantValue);
   
   ObjectCommand oc(QString("modified"));
   emit signalMessage(oc);
@@ -255,6 +279,8 @@ CompareValuesObject::load (ObjectCommand *oc)
   _op = settings->value(QString("op")).toInt();
   _offset = settings->value(QString("offset")).toInt();
   _offset2 = settings->value(QString("offset2")).toInt();
+  _constant = settings->value(QString("constant"), FALSE).toBool();
+  _constantValue = settings->value(QString("constant_value"), 0).toDouble();
 
   return 1;
 }
@@ -277,6 +303,39 @@ CompareValuesObject::save (ObjectCommand *oc)
   settings->setValue(QString("op"), _op);
   settings->setValue(QString("offset"), _offset);
   settings->setValue(QString("offset2"), _offset2);
+  settings->setValue(QString("constant"), _constant);
+  settings->setValue(QString("constant_value"), _constantValue);
 
+  return 1;
+}
+
+int
+CompareValuesObject::value (ObjectCommand *oc)
+{
+  QString key("index");
+  int index = oc->getInt(key);
+  
+  Data *d = _bars.value(index);
+  if (! d)
+  {
+    qDebug() << "CompareValuesObject::save: invalid" << key << index;
+    return 0;
+  }
+  
+  if (! d->contains(_outputKey))
+  {
+    qDebug() << "CompareValuesObject::save: empty value";
+    return 0;
+  }
+  
+  oc->setValue(QString("value"), d->value(_outputKey).toDouble());
+  
+  return 1;
+}
+
+int
+CompareValuesObject::size (ObjectCommand *oc)
+{
+  oc->setValue(QString("size"), _bars.size());
   return 1;
 }

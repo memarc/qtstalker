@@ -19,37 +19,37 @@
  *  USA.
  */
 
-#ifndef PLUGIN_COMPARE_VALUES_DIALOG_HPP
-#define PLUGIN_COMPARE_VALUES_DIALOG_HPP
+#ifndef PLUGIN_INDICATOR_BAR_LENGTH_BUTTON_HPP
+#define PLUGIN_INDICATOR_BAR_LENGTH_BUTTON_HPP
 
-#include <QtGui>
+#include <QToolButton>
+#include <QMenu>
+#include <QStringList>
 
-#include "Dialog.h"
-#include "InputObjectWidget.h"
-
-class CompareValuesDialog : public Dialog
+class BarLengthButton : public QToolButton
 {
   Q_OBJECT
-  
+
+  signals:
+    void signalLength ();
+
   public:
-    CompareValuesDialog (QHash<QString, void *> objects, QStringList opList, QString name);
-    ~CompareValuesDialog ();
-    void createCompareTab (QHash<QString, void *>, QStringList opList);
-    void setSettings(QString, QString, int, QString, QString, int, int, bool, double);
-    void settings(QString &, QString &, int &, QString &, QString &, int &, int &, bool &, double &);
-    
-  public slots:
-    void done ();
-    void loadSettings ();
+    BarLengthButton (QString);
+    ~BarLengthButton ();
+    void createMenu ();
+    QString length ();
+    int interval ();
     void saveSettings ();
-    void constantChanged (bool);
-  
-  protected:
-    QComboBox *_op;
-    InputObjectWidget *_input;
-    InputObjectWidget *_input2;
-    QCheckBox *_constant;
-    QDoubleSpinBox *_value;
+
+  public slots:
+    void lengthChanged (QAction *);
+
+  private:
+    QString _length;
+    int _interval;
+    QMenu *_menu;
+    QStringList _list;
+    QString _settingsPath;
 };
 
 #endif

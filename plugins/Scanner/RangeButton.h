@@ -19,37 +19,41 @@
  *  USA.
  */
 
-#ifndef PLUGIN_COMPARE_VALUES_DIALOG_HPP
-#define PLUGIN_COMPARE_VALUES_DIALOG_HPP
+#ifndef PLUGIN_INDICATOR_RANGE_BUTTON_HPP
+#define PLUGIN_INDICATOR_RANGE_BUTTON_HPP
+
 
 #include <QtGui>
+#include <QSettings>
 
-#include "Dialog.h"
-#include "InputObjectWidget.h"
-
-class CompareValuesDialog : public Dialog
+class RangeButton : public QToolButton
 {
   Q_OBJECT
   
+  signals:
+    void signalRange ();
+
   public:
-    CompareValuesDialog (QHash<QString, void *> objects, QStringList opList, QString name);
-    ~CompareValuesDialog ();
-    void createCompareTab (QHash<QString, void *>, QStringList opList);
-    void setSettings(QString, QString, int, QString, QString, int, int, bool, double);
-    void settings(QString &, QString &, int &, QString &, QString &, int &, int &, bool &, double &);
-    
-  public slots:
-    void done ();
+    RangeButton (QString);
+    ~RangeButton ();
+    void createGUI ();
     void loadSettings ();
     void saveSettings ();
-    void constantChanged (bool);
-  
-  protected:
-    QComboBox *_op;
-    InputObjectWidget *_input;
-    InputObjectWidget *_input2;
-    QCheckBox *_constant;
-    QDoubleSpinBox *_value;
+    QDateTime startDate ();
+    QDateTime endDate ();
+    int dates (QString range, QDateTime &sd, QDateTime &ed);
+
+  public slots:
+    void rangeChanged (QAction *);
+    void dateRangeDialog (void *);
+    
+  private:
+    QStringList _list;
+    QDateTime _startDate;
+    QDateTime _endDate;
+    QActionGroup *_group;
+    QHash<QString, QAction *> _actions;
+    QString _settingsPath;
 };
 
 #endif

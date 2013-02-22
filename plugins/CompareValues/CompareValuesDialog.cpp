@@ -77,6 +77,17 @@ CompareValuesDialog::createCompareTab (QHash<QString, void *> l, QStringList opL
   connect(_input2, SIGNAL(valueChanged()), this, SLOT(modified()));
   form->addRow(tr("Input 2"), _input2);
 
+  // constant
+  _constant = new QCheckBox;
+  connect(_constant, SIGNAL(toggled(bool)), this, SLOT(modified()));
+  connect(_constant, SIGNAL(toggled(bool)), this, SLOT(constantChanged(bool)));
+  form->addRow(tr("Use Constant Value"), _constant);
+  
+  // value
+  _value = new QDoubleSpinBox;
+  connect(_value, SIGNAL(valueChanged(double)), this, SLOT(modified()));
+  form->addRow(tr("Constant Value"), _value);
+  
   _tabs->addTab(w, tr("Settings"));
 }
 
@@ -102,7 +113,8 @@ CompareValuesDialog::saveSettings()
 }
 
 void
-CompareValuesDialog::setSettings (QString i, QString ik, int o, QString i2, QString i2k, int o2, int op)
+CompareValuesDialog::setSettings (QString i, QString ik, int o, QString i2, QString i2k,
+                                  int o2, int op, bool constant, double value)
 {
   _input->setInput(i);
   _input->setKey(tr("Input"), ik);
@@ -111,10 +123,15 @@ CompareValuesDialog::setSettings (QString i, QString ik, int o, QString i2, QStr
   _input2->setKey(tr("Input"), i2k);
   _input2->setOffset(o2);
   _op->setCurrentIndex(op);
+  _constant->setChecked(constant);
+  _value->setValue(value);
+  
+  constantChanged(constant);
 }
 
 void
-CompareValuesDialog::settings (QString &i, QString &ik, int &o, QString &i2, QString &i2k, int &o2, int &op)
+CompareValuesDialog::settings (QString &i, QString &ik, int &o, QString &i2, QString &i2k,
+                               int &o2, int &op, bool &constant, double &value)
 {
   i = _input->input();
   ik = _input->key(tr("Input"));
@@ -123,4 +140,21 @@ CompareValuesDialog::settings (QString &i, QString &ik, int &o, QString &i2, QSt
   i2k = _input2->key(tr("Input"));
   o2 = _input2->offset();
   op = _op->currentIndex();
+  constant = _constant->isChecked();
+  value = _value->value();
+}
+
+void
+CompareValuesDialog::constantChanged (bool d)
+{
+  if (d)
+  {
+    _input2->setEnabled(FALSE);
+    _value->setEnabled(TRUE);
+  }
+  else
+  {
+    _input2->setEnabled(TRUE);
+    _value->setEnabled(FALSE);
+  }
 }
