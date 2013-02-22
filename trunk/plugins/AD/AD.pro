@@ -20,8 +20,8 @@ HEADERS += ../../src/Plugin.h
 HEADERS += ../../src/PluginCommand.h
 HEADERS += ../../src/ObjectCommand.h
 #SOURCES += ../../src/ObjectCommand.cpp
-SOURCES += ../../src/Dialog.cpp
-#HEADERS += ../../src/Dialog.h
+#SOURCES += ../../src/Dialog.cpp
+HEADERS += ../../src/Dialog.h
 #SOURCES += ../../src/InputObjectWidget.cpp
 HEADERS += ../../src/InputObjectWidget.h
 

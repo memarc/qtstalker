@@ -41,6 +41,7 @@ IndicatorObject::IndicatorObject (QString profile, QString name)
   _commandList << QString("dialog");
   _commandList << QString("load");
   _commandList << QString("plugin_steps");
+  _commandList << QString("get_object");
 
   _plotCommands << QString("edit");
   _plotCommands << QString("delete");
@@ -91,6 +92,9 @@ IndicatorObject::message (ObjectCommand *oc)
       break;
     case 5:
       return pluginSteps(oc);
+      break;
+    case 6:
+      return getObject(oc);
       break;
     default:
       break;
@@ -519,6 +523,28 @@ IndicatorObject::pluginSteps (ObjectCommand *oc)
   }
   
   oc->setValue(QString("steps"), tl);
+  
+  return 1;
+}
+
+int
+IndicatorObject::getObject (ObjectCommand *oc)
+{
+  QString name = oc->getString(QString("name"));
+  if (name.isEmpty())
+  {
+    qDebug() << "IndicatorObject::getObject: invalid name";
+    return 0;
+  }
+
+  Object *o = _objects.value(name);
+  if (! o)
+  {
+    qDebug() << "IndicatorObject::getObject: invalid name";
+    return 0;
+  }
+  
+  oc->setValue(QString("object"), (void *) o);
   
   return 1;
 }

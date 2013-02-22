@@ -4,6 +4,8 @@ INCLUDEPATH += ../../lib
 LIBS += -L../../lib -lOTA
 MOC_DIR += build
 OBJECTS_DIR += build
+QMAKE_CXXFLAGS += -fPIC -O2
+
 
 HEADERS += CommandParse.h
 SOURCES += CommandParse.cpp

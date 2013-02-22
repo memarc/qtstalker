@@ -42,6 +42,8 @@ class CompareValuesObject : public Object
     int load (ObjectCommand *);
     int save (ObjectCommand *);
     int outputKeys (ObjectCommand *);
+    int value (ObjectCommand *);
+    int size (ObjectCommand *);
     
   public slots:    
     int message (ObjectCommand *);
@@ -58,6 +60,8 @@ class CompareValuesObject : public Object
     int _offset;
     int _offset2;
     int _op;
+    bool _constant;
+    double _constantValue;
     QString _outputKey;
 };
 

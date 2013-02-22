@@ -19,37 +19,26 @@
  *  USA.
  */
 
-#ifndef PLUGIN_COMPARE_VALUES_DIALOG_HPP
-#define PLUGIN_COMPARE_VALUES_DIALOG_HPP
+#ifndef PLUGIN_SCANNER_OBJECT_HPP
+#define PLUGIN_SCANNER_OBJECT_HPP
 
-#include <QtGui>
+#include <QStringList>
 
-#include "Dialog.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
-class CompareValuesDialog : public Dialog
+class ScannerObject : public Object
 {
   Q_OBJECT
-  
+
   public:
-    CompareValuesDialog (QHash<QString, void *> objects, QStringList opList, QString name);
-    ~CompareValuesDialog ();
-    void createCompareTab (QHash<QString, void *>, QStringList opList);
-    void setSettings(QString, QString, int, QString, QString, int, int, bool, double);
-    void settings(QString &, QString &, int &, QString &, QString &, int &, int &, bool &, double &);
+    ScannerObject (QString profile, QString name);
+    int app (ObjectCommand *);
     
   public slots:
-    void done ();
-    void loadSettings ();
-    void saveSettings ();
-    void constantChanged (bool);
-  
-  protected:
-    QComboBox *_op;
-    InputObjectWidget *_input;
-    InputObjectWidget *_input2;
-    QCheckBox *_constant;
-    QDoubleSpinBox *_value;
+    int message (ObjectCommand *);
+    
+  private:
+    QStringList _commandList;
 };
 
 #endif

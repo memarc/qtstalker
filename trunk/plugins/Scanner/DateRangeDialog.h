@@ -19,37 +19,32 @@
  *  USA.
  */
 
-#ifndef PLUGIN_COMPARE_VALUES_DIALOG_HPP
-#define PLUGIN_COMPARE_VALUES_DIALOG_HPP
+#ifndef PLUGIN_INDICATOR_DATE_RANGE_DIALOG_HPP
+#define PLUGIN_INDICATOR_DATE_RANGE_DIALOG_HPP
 
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
 
-class CompareValuesDialog : public Dialog
+class DateRangeDialog : public Dialog
 {
   Q_OBJECT
   
   public:
-    CompareValuesDialog (QHash<QString, void *> objects, QStringList opList, QString name);
-    ~CompareValuesDialog ();
-    void createCompareTab (QHash<QString, void *>, QStringList opList);
-    void setSettings(QString, QString, int, QString, QString, int, int, bool, double);
-    void settings(QString &, QString &, int &, QString &, QString &, int &, int &, bool &, double &);
-    
+    DateRangeDialog ();
+    ~DateRangeDialog ();
+    void createTab ();
+    void setSettings (QDateTime, QDateTime);
+    void settings (QDateTime &, QDateTime &);
+
   public slots:
     void done ();
     void loadSettings ();
     void saveSettings ();
-    void constantChanged (bool);
-  
+
   protected:
-    QComboBox *_op;
-    InputObjectWidget *_input;
-    InputObjectWidget *_input2;
-    QCheckBox *_constant;
-    QDoubleSpinBox *_value;
+    QDateTimeEdit *_startDate;
+    QDateTimeEdit *_endDate;
 };
 
 #endif

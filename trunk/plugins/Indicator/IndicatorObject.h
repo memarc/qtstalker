@@ -41,6 +41,7 @@ class IndicatorObject : public Object
     int dialog (ObjectCommand *);
     int load (ObjectCommand *);
     int pluginSteps (ObjectCommand *);
+    int getObject (ObjectCommand *);
 
     void clear();
     int load ();
