@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<QHelpCollectionProject version="1.0">
+  <assistant>
+    <title>Qtstalker Help</title>
+    <cacheDirectory>Qtstalker</cacheDirectory>
+    <homePage>qthelp://qtstalker/doc/index.html</homePage>
+  </assistant>
+  <docFiles>
+    <generate>
+      <file>
+        <input>doc.qhp</input>
+        <output>doc.qch</output>
+      </file>
+      <file>
+        <input>api/index.qhp</input>
+        <output>doc-doxygen.qch</output>
+      </file>
+    </generate>
+    <register>
+      <file>doc.qch</file>
+      <file>doc-doxygen.qch</file>
+    </register>
+  </docFiles>
+</QHelpCollectionProject>

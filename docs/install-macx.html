@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="qtstalker.css"
+ media="screen">
+  <script src="qtstalker.js" type="text/javascript"> </script>
+  <title>Qtstalker: Installing on Mac OS X</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+<body>
+<div id="content">
+<div id="rightPanel">
+<div id="version"></div>
+<div id="toc">
+<hr>
+<ul>
+  <li><a href="index.html">Home</a></li>
+  <li><a href="toc.html">Table of Contents</a></li>
+</ul>
+</div>
+</div>
+<!-- Content -->
+<h1>Qtstalker: Installing on Mac OS X</h1>
+<h2 id="requirements">Requirements and dependencies</h2>
+<ul>
+  <li>Mac OS X (Leopard 10.5 or Snow Leopard 10.6 or Lion 10.7).</li>
+  <li>Apple Xcode Tools. To build Qtstalker from sources.</li>
+  <li>Dependencies: Qt and Qwt and TA-Lib</li>
+</ul>
+<h2 id="install">Installation</h2>
+<p> See the general <a href="install.html">Installation</a>
+instructions for overview, requirements, dependencies, and tips.
+Note that these Mac instructions are deliberately terse because the main
+installation instructions have the detail.
+</p>
+<p> There are other build systems and IDEs, however this works from the
+command-line with minimal changes to Qtstalker sources.
+</p>
+<p>
+The dependencies are easy to install from their source.
+You might be able to install these using package managers. 
+However use the examples of each dependency to ensure proper installation,
+before complaining about Qtstalker.
+</p>
+<h3 id="ta-lib">Install TA-Lib</h3>
+<p> Install TA-Lib 0.4.0 from source. </p>
+<pre>./configure
+make
+sudo make install
+</pre>
+<p> This will install TA-Lib at <code>/usr/local</code> ... See
+important <a href="install.html#source">notes</a> about ensuring
+proper installation and configuration if at a non-standard location. </p>
+<h3 id="qt">Install Qt</h3>
+<p> Install Qt 4.6 or newer from source. </p>
+<p> For Lion and Leopard use the default configuration: </p>
+<pre>./configure
+</pre>
+<p> For Snow Leopard (or perhaps it was Qt-4.6 on SL) this configuration was needed: </p>
+<pre>./configure -cocoa -arch x86_64
+</pre>
+<p> See important <a href="install.html#source">notes</a> about
+ensuring proper installation and adding to your <code>$PATH</code>
+<a href="http://en.wikipedia.org/wiki/Environment_variable">environment
+variable</a>
+to ensure that '<code>qmake</code>' etc can be found. </p>
+<h3 id="qwt">Install Qwt</h3>
+<p> Install Qwt 5.2 from source. </p>
+<p> See important <a href="install.html#source">notes</a> about
+ensuring proper installation and adding to your <code>$DYLD_LIBRARY_PATH</code>
+<a href="http://en.wikipedia.org/wiki/Environment_variable">environment
+variable</a>
+to ensure that its shared library can be found. </p>
+<h3 id="build">Building Qtstalker</h3>
+<p> Prepare for compiling Qtstalker: </p>
+<p>By default Qt and Qwt are installed at a non-standard location
+(which is difficult for Qtstalker to automatically guess). So edit the
+<code>qtstalker.config</code> file to add the following lines
+(using whatever relevant version numbers): </p>
+<pre>INCLUDEPATH += /usr/local/Trolltech/Qt-4.6.3/include/Qt
+LIBS += -L/usr/local/Trolltech/Qt-4.6.3/lib
+INCLUDEPATH += /usr/local/qwt-5.2.1/include
+LIBS += -L/usr/local/qwt-5.2.1/lib</pre>
+<p> For Snow Leopard, edit our "<code>configure</code>" file to tweak the "qmake"
+invocation to include "CONFIG += qt x86_64".
+See the Qt <a href="#qt">notes</a> above, perhaps this was just with Qt4.6 on SL.
+For Lion, no changes are needed.
+</p>
+<p> Now compile Qtstalker: </p>
+<pre>./configure
+make
+sudo make install
+</pre>
+<h3 id="symlink">Post-install steps</h3>
+<p>
+At runtime, the "<code>qtstalker</code>" program will need to be discoverable,
+so create symbolic links:
+</p>
+<pre>cd /usr/local/bin
+sudo ln -s qtstalker.app/Contents/MacOS/qtstalker qtstalker
+</pre>
+<p>
+Configure the Finder to enable access to Qtstalker scripts. Unless you modified the
+installation <a href="install.html#where">locations</a> using qtstalker.config file,
+then you will need to enable browsing of the /usr/local directory.
+</p>
+<pre>
+Use menu option "Finder : Go : Go to Folder ..."
+Then drag "local" to the Finder sidebar.
+</pre>
+<h2 id="start">Start Qtstalker</h2>
+<p>In a Terminal window, as a normal user, do this:</p>
+<pre>qtstalker</pre>
+<h2 id="where">Where does stuff get installed</h2>
+<p>See the main <a href="install.html#where">notes</a> about this topic.</p>
+<p>Mac OS X stores user preferences information at:</p>
+<pre>~/Library/Preferences/*qtstalker*.plist</pre>
+</div>
+<div id="bottom-spacer">
+<!-- Spacer so that can link directly to certain items in the list above. -->
+</div>
+</body>
+</html>
