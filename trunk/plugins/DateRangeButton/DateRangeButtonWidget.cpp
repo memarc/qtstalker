@@ -20,7 +20,6 @@
  */
 
 #include "DateRangeButtonWidget.h"
-#include "DateRangeButtonDialog.h"
 #include "../pics/date.xpm"
 
 #include <QtDebug>
