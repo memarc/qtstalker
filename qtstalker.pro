@@ -122,6 +122,7 @@ SUBDIRS += plugins/CurveHistogram
 SUBDIRS += plugins/CurveLine
 SUBDIRS += plugins/CurveOHLC
 SUBDIRS += plugins/DataBase
+SUBDIRS += plugins/DateRangeButton
 SUBDIRS += plugins/FI
 SUBDIRS += plugins/Group
 SUBDIRS += plugins/HT

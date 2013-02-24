@@ -43,7 +43,7 @@ class CompareValuesObject : public Object
     int save (ObjectCommand *);
     int outputKeys (ObjectCommand *);
     int value (ObjectCommand *);
-    int size (ObjectCommand *);
+    int startEndIndex (ObjectCommand *);
     
   public slots:    
     int message (ObjectCommand *);

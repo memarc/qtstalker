@@ -24,13 +24,11 @@
 
 #include <QDebug>
 
-ScannerThread::ScannerThread (QObject *p, QString pro, QStringList l, QString bl, QString dr,
-                              QDateTime sd, QDateTime ed) : QThread (p)
+ScannerThread::ScannerThread (QObject *p, QString pro, QStringList l, QString bl, QDateTime sd, QDateTime ed) : QThread (p)
 {
   _stop = FALSE;
   _symbols = l;
   _length = bl;
-  _range = dr;
   _startDate = sd;
   _endDate = ed;
   _profile = pro;
@@ -102,19 +100,22 @@ ScannerThread::run ()
         continue;
       }
       
-      toc.setCommand(QString("size"));
+      toc.setCommand(QString("start_end_index"));
       if (! step->message(&toc))
       {
         qDebug() << "ScannerThread::run: message error" << step->plugin() << toc.command();
         continue;
       }
       
-      int size = toc.getInt(QString("size"));
-      if (! size)
+      int end = toc.getInt(QString("end"));
+      if (! end)
+      {
+        qDebug() << "ScannerThread::run: 0 size" << _symbols.at(pos);
         continue;
+      }
       
       toc.setCommand(QString("value"));
-      toc.setValue(QString("index"), size - 1);
+      toc.setValue(QString("index"), end);
       if (! step->message(&toc))
       {
         qDebug() << "ScannerThread::run: message error" << step->plugin() << toc.command();
@@ -125,6 +126,7 @@ ScannerThread::run ()
         andTotal++;
       
       double v = toc.getDouble(QString("value"));
+qDebug() << "ScannerThread::run: value" << step->plugin() << v;
       if (! v)
         continue;
       

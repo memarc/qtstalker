@@ -51,7 +51,7 @@ CompareValuesObject::CompareValuesObject (QString profile, QString name)
   _commandList << QString("save");
   _commandList << QString("output_keys");
   _commandList << QString("value");
-  _commandList << QString("size");
+  _commandList << QString("start_end_index");
   
   _opList << QString("<");
   _opList << QString("<=");
@@ -106,7 +106,7 @@ CompareValuesObject::message (ObjectCommand *oc)
       rc = value(oc);
       break;
     case 8:
-      rc = size(oc);
+      rc = startEndIndex(oc);
       break;
     default:
       break;
@@ -334,8 +334,28 @@ CompareValuesObject::value (ObjectCommand *oc)
 }
 
 int
-CompareValuesObject::size (ObjectCommand *oc)
+CompareValuesObject::startEndIndex (ObjectCommand *oc)
 {
-  oc->setValue(QString("size"), _bars.size());
+  int start = 0;
+  int end = 0;
+  
+  QMapIterator<int, Data *> it(_bars);
+  it.toFront();
+  if (it.hasNext())
+  {
+    it.next();
+    start = it.key();
+  }
+  
+  it.toBack();
+  if (it.hasPrevious())
+  {
+    it.previous();
+    end = it.key();
+  }
+  
+  oc->setValue(QString("start"), start);
+  oc->setValue(QString("end"), end);
+  
   return 1;
 }
