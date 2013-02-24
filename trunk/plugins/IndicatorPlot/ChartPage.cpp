@@ -355,6 +355,8 @@ ChartPage::updateList2 ()
   
   _nav->blockSignals(FALSE);
   _nav->setSortingEnabled(TRUE);
+
+  _nav->sortItems(Qt::AscendingOrder);
   
   buttonStatus();
 }

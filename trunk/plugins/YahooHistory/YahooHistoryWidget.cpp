@@ -207,6 +207,7 @@ YahooHistoryWidget::downloadHistory ()
 {
   _log->clear();
   setEnabled(FALSE);
+  _log->setEnabled(TRUE);
   _downloading = TRUE;
   buttonStatus();
 

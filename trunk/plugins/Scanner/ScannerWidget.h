@@ -26,7 +26,7 @@
 
 #include "Object.h"
 #include "BarLengthButton.h"
-#include "RangeButton.h"
+//#include "RangeButton.h"
 
 class ScannerWidget : public QWidget
 {
@@ -43,6 +43,7 @@ class ScannerWidget : public QWidget
       _INDICATOR_REMOVE,
       _HELP,
       _QUIT,
+      _RESULT_SAVE_GROUP,
       _SCAN,
       _STOP,
       _SYMBOL_ADD,
@@ -70,6 +71,7 @@ class ScannerWidget : public QWidget
     void addSymbols ();
     void removeSymbols ();
     void saveSettings ();
+    void saveResults ();
     
     void indicatorItemClicked (QTreeWidgetItem *, int);
     void indicatorItemDoubleClicked (QTreeWidgetItem *, int);
@@ -86,7 +88,8 @@ class ScannerWidget : public QWidget
     QHash<int, QAction *> _actions;
     QMainWindow *_mw;
     BarLengthButton *_barLengthButton;
-    RangeButton *_rangeButton;
+//    RangeButton *_rangeButton;
+    Object *_rangeButton;
     QString _profile;
     QString _helpFile;
     QString _settingsPath;

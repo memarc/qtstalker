@@ -1,7 +1,7 @@
 /*
  *  Qtstalker stock charter
  *
- *  Copyright (C) 2001-2007 Stefan S. Stratigakos
+ *  Copyright (C) 2001-2010 Stefan S. Stratigakos
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,52 +19,37 @@
  *  USA.
  */
 
-#ifndef PLUGIN_SCANNER_THREAD_HPP
-#define PLUGIN_SCANNER_THREAD_HPP
+#ifndef PLUGIN_DATE_RANGE_BUTTON_OBJECT_HPP
+#define PLUGIN_DATE_RANGE_BUTTON_OBJECT_HPP
 
-#include <QThread>
 #include <QStringList>
-#include <QDateTime>
-#include <QHash>
 
 #include "Object.h"
+#include "DateRangeButtonDialog.h"
+#include "DateRangeButtonWidget.h"
 
 
-typedef struct
-{
-  Object *i;
-  QString step;
-  QString usage;
-  
-} IndicatorItem;
-
-class ScannerThread : public QThread
+class DateRangeButtonObject : public Object
 {
   Q_OBJECT
-  
-  signals:
-    void signalMessage (ObjectCommand);
-    void signalDone ();
-    void signalProgress (int);
-  
+
   public:
-    ScannerThread (QObject *, QString, QStringList, QString, QDateTime, QDateTime);
-    ~ScannerThread ();
-    void run ();
-    Object * loadBars (QString);
-    void loadIndicators ();
+    DateRangeButtonObject (QString profile, QString name);
+    ~DateRangeButtonObject ();
+    int dates (ObjectCommand *);
+    int load (ObjectCommand *);
+    int save (ObjectCommand *);
+    QWidget * widget ();
+    int datesLocal (QString range, QDateTime &sd, QDateTime &ed);
     
-  public slots:
-    void stop ();
+  public slots:    
+    int message (ObjectCommand *);
+    void rangeChanged ();
     
   private:
-    QStringList _symbols;
-    QString _length;
-    QString _profile;
-    QDateTime _startDate;
-    QDateTime _endDate;
-    bool _stop;
-    QList<IndicatorItem> _items;
+    QStringList _commandList;
+    QStringList _rangeList;
+    DateRangeButtonWidget *_widget;
 };
 
 #endif

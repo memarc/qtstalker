@@ -19,52 +19,23 @@
  *  USA.
  */
 
-#ifndef PLUGIN_SCANNER_THREAD_HPP
-#define PLUGIN_SCANNER_THREAD_HPP
 
-#include <QThread>
-#include <QStringList>
-#include <QDateTime>
-#include <QHash>
+#ifndef PLUGIN_DATE_RANGE_BUTTON_H
+#define PLUGIN_DATE_RANGE_BUTTON_H
 
-#include "Object.h"
+#include "Plugin.h"
 
-
-typedef struct
-{
-  Object *i;
-  QString step;
-  QString usage;
-  
-} IndicatorItem;
-
-class ScannerThread : public QThread
+class DateRangeButton : public QObject, public Plugin
 {
   Q_OBJECT
-  
-  signals:
-    void signalMessage (ObjectCommand);
-    void signalDone ();
-    void signalProgress (int);
-  
+  Q_INTERFACES(Plugin)
+
   public:
-    ScannerThread (QObject *, QString, QStringList, QString, QDateTime, QDateTime);
-    ~ScannerThread ();
-    void run ();
-    Object * loadBars (QString);
-    void loadIndicators ();
+    DateRangeButton ();
+    int command (PluginCommand *); 
     
-  public slots:
-    void stop ();
-    
-  private:
-    QStringList _symbols;
-    QString _length;
-    QString _profile;
-    QDateTime _startDate;
-    QDateTime _endDate;
-    bool _stop;
-    QList<IndicatorItem> _items;
+  protected:
+    QStringList _commandList;
 };
 
 #endif

@@ -36,6 +36,7 @@
 #include "../../pics/delete.xpm"
 #include "../../pics/edit.xpm"
 #include "../../pics/new.xpm"
+#include "../../pics/save.xpm"
 
 
 ScannerWidget::ScannerWidget (QMainWindow *mw, QString profile)
@@ -47,9 +48,9 @@ ScannerWidget::ScannerWidget (QMainWindow *mw, QString profile)
   _mw = mw;
   _profile = profile;
   _scanning = FALSE;
+  _rangeButton = 0;
 
   createActions();
-  createGUI();
 
   QStringList tl;
   tl << QString("OTA -") << QString("Scanner") << QString("(") << _profile << QString(")");
@@ -68,6 +69,10 @@ ScannerWidget::ScannerWidget (QMainWindow *mw, QString profile)
   _symbolObject = util.object(QString("Symbol"), QString(), QString());
   if (_symbolObject)
     connect(_symbolObject, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(symbolObjectMessage(ObjectCommand)));
+
+  _rangeButton = util.object(QString("DateRangeButton"), _profile, QString());
+
+  createGUI();
   
   loadSettings();
 
@@ -79,6 +84,9 @@ ScannerWidget::~ScannerWidget ()
 {
   if (_symbolObject)
     delete _symbolObject;
+  
+  if (_rangeButton)
+    delete _rangeButton;
   
   qDeleteAll(_objects);
 }
@@ -140,6 +148,12 @@ ScannerWidget::createActions ()
   a->setStatusTip(tr("Remove Symbols"));
   connect(a, SIGNAL(triggered(bool)), this, SLOT(removeSymbols()));
   _actions.insert(_SYMBOL_REMOVE, a);
+  
+  a = new QAction(QIcon(save_xpm), tr("Save Results As Group"), this);
+  a->setToolTip(tr("Save Results As Group"));
+  a->setStatusTip(tr("Save Results As Group"));
+  connect(a, SIGNAL(triggered(bool)), this, SLOT(saveResults()));
+  _actions.insert(_RESULT_SAVE_GROUP, a);
 }
 
 void
@@ -199,7 +213,7 @@ ScannerWidget::createGUI ()
 
   _barLengthButton = new BarLengthButton(_settingsPath);
 
-  _rangeButton = new RangeButton(_settingsPath);
+//  _rangeButton = new RangeButton(_settingsPath);
   
   // toolbar
   tb = new QToolBar;
@@ -208,7 +222,8 @@ ScannerWidget::createGUI ()
   tb->addAction(_actions.value(_SYMBOL_REMOVE));
   tb->addSeparator();
   tb->addWidget(_barLengthButton);
-  tb->addWidget(_rangeButton);
+  if (_rangeButton)
+    tb->addWidget(_rangeButton->widget());
   thbox->addWidget(tb);
   
   // results
@@ -248,22 +263,22 @@ ScannerWidget::createGUI ()
 void
 ScannerWidget::loadSettings ()
 {
-  QSettings settings(_settingsPath, QSettings::NativeFormat);
+  QSettings *settings = new QSettings(_settingsPath, QSettings::NativeFormat);
   
   // app size;
-  QSize sz = settings.value(QString("size"), QSize(500,300)).toSize();
+  QSize sz = settings->value(QString("size"), QSize(500,300)).toSize();
   _mw->resize(sz);
 
   // app position
-  QPoint p = settings.value(QString("pos"), QPoint(0, 0)).toPoint();
+  QPoint p = settings->value(QString("pos"), QPoint(0, 0)).toPoint();
   _mw->move(p);
   
-  _symbols->addItems(settings.value(QString("symbols")).toStringList());
-  _results->addItems(settings.value(QString("results")).toStringList());
+  _symbols->addItems(settings->value(QString("symbols")).toStringList());
+  _results->addItems(settings->value(QString("results")).toStringList());
   
   // indicator column sizes
-  _indicators->setColumnWidth(0, settings.value(QString("indicator_col_0"), 300).toInt());
-  _indicators->setColumnWidth(1, settings.value(QString("indicator_col_2"), 100).toInt());
+  _indicators->setColumnWidth(0, settings->value(QString("indicator_col_0"), 300).toInt());
+  _indicators->setColumnWidth(1, settings->value(QString("indicator_col_2"), 100).toInt());
 
   QDir dir(_indicatorPath);
   QStringList tl = dir.entryList(QDir::NoDotAndDotDot | QDir::Files, QDir::NoSort);
@@ -272,31 +287,49 @@ ScannerWidget::loadSettings ()
     QString file = _indicatorPath + "/" + tl.at(pos);
     addIndicatorItem(file, tl.at(pos));
   }
+  
+  if (_rangeButton)
+  {
+    ObjectCommand toc(QString("load"));
+    toc.setValue(QString("QSettings"), (void *) settings);
+    _rangeButton->message(&toc);
+  }
+  
+  delete settings;
 }
 
 void
 ScannerWidget::saveSettings()
 {
-  QSettings settings(_settingsPath, QSettings::NativeFormat);
-  settings.setValue(QString("size"), _mw->size());
-  settings.setValue(QString("pos"), _mw->pos());
+  QSettings *settings = new QSettings(_settingsPath, QSettings::NativeFormat);
+  settings->setValue(QString("size"), _mw->size());
+  settings->setValue(QString("pos"), _mw->pos());
   
   // symbols
   QStringList tl;
   for (int pos = 0; pos < _symbols->count(); pos++)
     tl << _symbols->item(pos)->text();
-  settings.setValue(QString("symbols"), tl);
+  settings->setValue(QString("symbols"), tl);
   
   // results
   tl.clear();
   for (int pos = 0; pos < _results->count(); pos++)
     tl << _results->item(pos)->text();
-  settings.setValue(QString("results"), tl);
+  settings->setValue(QString("results"), tl);
 
   // indicator column sizes
-  settings.setValue(QString("indicator_col_0"), _indicators->columnWidth(0));
-  settings.setValue(QString("indicator_col_1"), _indicators->columnWidth(1));
+  settings->setValue(QString("indicator_col_0"), _indicators->columnWidth(0));
+  settings->setValue(QString("indicator_col_1"), _indicators->columnWidth(1));
 
+  if (_rangeButton)
+  {
+    ObjectCommand toc(QString("save"));
+    toc.setValue(QString("QSettings"), (void *) settings);
+    _rangeButton->message(&toc);
+  }
+  
+  delete settings;
+  
   saveIndicatorSettings();
 }
 
@@ -353,9 +386,20 @@ ScannerWidget::scan ()
   _progBar->setRange(0, tl.size());
 
   QDateTime sd, ed;
-  _rangeButton->dates(_rangeButton->text(), sd, ed);
+  if (_rangeButton)
+  {
+    ObjectCommand toc(QString("dates"));
+    if (! _rangeButton->message(&toc))
+    {
+      done();
+      return;
+    }
+    
+    sd = toc.getDate(QString("start_date"));
+    ed = toc.getDate(QString("end_date"));
+  }
   
-  ScannerThread *thread = new ScannerThread(0, _profile, tl, _barLengthButton->text(), _rangeButton->text(), sd, ed);
+  ScannerThread *thread = new ScannerThread(0, _profile, tl, _barLengthButton->text(), sd, ed);
   connect(thread, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(threadMessage(ObjectCommand)));
   connect(this, SIGNAL(signalStop()), thread, SLOT(stop()));
   connect(thread, SIGNAL(signalDone()), this, SLOT(done()));
@@ -594,6 +638,8 @@ ScannerWidget::symbolObjectMessage (ObjectCommand oc)
   if (oc.command() != QString("search"))
     return;
 
+  _symbols->clear();
+  
   QHashIterator<QString, Data> it(oc.getDatas());
   while (it.hasNext())
   {
@@ -610,4 +656,57 @@ ScannerWidget::removeSymbols ()
   QList<QListWidgetItem *> il = _symbols->selectedItems();
   qDeleteAll(il);
   symbolItemClicked(0);
+}
+
+void
+ScannerWidget::saveResults ()
+{
+  bool ok;
+  QString name = QInputDialog::getText(this,
+                                       tr("OTA - Scanner Save Results As Group"),
+                                       tr("Group Name"),
+                                       QLineEdit::Normal,
+                                       tr("New Group"),
+                                       &ok,
+                                       0,
+                                       0);
+  
+  if (name.isEmpty())
+    return;
+  
+  Util util;
+  Object *group = util.object(QString("Group"), _profile, QString());
+  if (! group)
+  {
+    qDebug() << "ScannerWidget::saveResults: invalid Group object";
+    return;
+  }
+  
+  ObjectCommand toc(QString("groups"));
+  if (! group->message(&toc))
+  {
+    qDebug() << "ScannerWidget::saveResults: message error" << group->plugin() << toc.command();
+    delete group;
+    return;
+  }
+  
+  QStringList gl = toc.getList(QString("groups"));
+  
+  if (gl.indexOf(name) != -1)
+  {
+    QMessageBox msgBox;
+    msgBox.setWindowTitle(tr("OTA - Scanner Save Group Warning"));
+    msgBox.setText("Group already exists.");
+    msgBox.setInformativeText("Replace group ?");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::No);
+    int ret = msgBox.exec();
+    if (ret == QMessageBox::No)
+    {
+      delete group;
+      return;
+    }
+  }
+  
+  group->setName(name);
 }

@@ -1,7 +1,7 @@
 /*
  *  Qtstalker stock charter
  *
- *  Copyright (C) 2001-2007 Stefan S. Stratigakos
+ *  Copyright (C) 2001-2010 Stefan S. Stratigakos
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,52 +19,37 @@
  *  USA.
  */
 
-#ifndef PLUGIN_SCANNER_THREAD_HPP
-#define PLUGIN_SCANNER_THREAD_HPP
-
-#include <QThread>
-#include <QStringList>
-#include <QDateTime>
-#include <QHash>
-
-#include "Object.h"
+#ifndef PLUGIN_DATE_RANGE_BUTTON_WIDGET_HPP
+#define PLUGIN_DATE_RANGE_BUTTON_WIDGET_HPP
 
 
-typedef struct
-{
-  Object *i;
-  QString step;
-  QString usage;
-  
-} IndicatorItem;
+#include <QtGui>
+#include "PopupWidget.h"
 
-class ScannerThread : public QThread
+class DateRangeButtonWidget : public QToolButton
 {
   Q_OBJECT
   
   signals:
-    void signalMessage (ObjectCommand);
-    void signalDone ();
-    void signalProgress (int);
-  
+    void signalRange ();
+
   public:
-    ScannerThread (QObject *, QString, QStringList, QString, QDateTime, QDateTime);
-    ~ScannerThread ();
-    void run ();
-    Object * loadBars (QString);
-    void loadIndicators ();
-    
+    DateRangeButtonWidget (QString profile);
+    ~DateRangeButtonWidget ();
+    void createGUI ();
+    QString range ();
+    QDateTime startDate ();
+    QDateTime endDate ();
+    bool custom ();
+    void setSettings (QStringList l, QString range, QDateTime sd, QDateTime ed, bool cus);
+
   public slots:
-    void stop ();
+    void showPopup ();
+    void popupChanged ();
     
   private:
-    QStringList _symbols;
-    QString _length;
     QString _profile;
-    QDateTime _startDate;
-    QDateTime _endDate;
-    bool _stop;
-    QList<IndicatorItem> _items;
+    PopupWidget *_popup;
 };
 
 #endif

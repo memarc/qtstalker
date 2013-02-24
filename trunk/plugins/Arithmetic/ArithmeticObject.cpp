@@ -180,6 +180,7 @@ ArithmeticObject::add (QMap<int, Data *> &in, QMap<int, Data *> &in2)
     if (! d->contains(_input2Key))
       continue;
     double v2 = d->value(_input2Key).toDouble();
+qDebug() << "ArithmeticObject::add" << v << v2;
 
     d = new Data;
     d->insert(_outputKey, QVariant(v + v2));
