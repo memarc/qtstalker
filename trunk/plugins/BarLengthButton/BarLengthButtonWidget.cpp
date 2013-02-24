@@ -19,109 +19,65 @@
  *  USA.
  */
 
-#include "DateRangeButtonWidget.h"
-#include "../pics/date.xpm"
+#include "BarLengthButtonWidget.h"
 
 #include <QtDebug>
 
 
-DateRangeButtonWidget::DateRangeButtonWidget (QString profile)
+BarLengthButtonWidget::BarLengthButtonWidget (QString profile)
 {
   _profile = profile;
   
   createGUI();
 }
 
-DateRangeButtonWidget::~DateRangeButtonWidget ()
+BarLengthButtonWidget::~BarLengthButtonWidget ()
 {
 }
 
 void
-DateRangeButtonWidget::createGUI ()
+BarLengthButtonWidget::createGUI ()
 {
   QFont font;
   font.setPointSize(9);
   setFont(font);
 
-  setToolTip(tr("Date Range"));
-  setStatusTip(tr("Date Range"));
+  setToolTip(tr("Bar Length"));
+  setStatusTip(tr("Bar Length"));
   setMaximumSize(QSize(25, 25));
   
-  _popup = new PopupWidget(this);
+  _popup = new BarLengthButtonPopupWidget(this);
   setMenu(_popup);
   connect(this, SIGNAL(clicked()), this, SLOT(showPopup()));
   connect(_popup, SIGNAL(aboutToHide()), this, SLOT(popupChanged()));
 }
 
 void
-DateRangeButtonWidget::setSettings (QStringList l, QString range, QDateTime sd, QDateTime ed, bool cus)
+BarLengthButtonWidget::setSettings (QStringList l, QString length)
 {
-  _popup->setSettings(l, range, sd, ed, cus);
-  
-  if (cus)
-  {
-    setText(QString());
-    setIcon(QIcon(date_xpm));
-  }
-  else
-  {
-    setIcon(QIcon());
-    setText(range);
-  }
+  _popup->setSettings(l, length);
+  setText(length);
 }
 
 QString
-DateRangeButtonWidget::range ()
+BarLengthButtonWidget::length ()
 {
-  return _popup->range();
-}
-
-QDateTime
-DateRangeButtonWidget::startDate ()
-{
-  return _popup->startDate();
-}
-
-QDateTime
-DateRangeButtonWidget::endDate ()
-{
-  return _popup->endDate();
-}
-
-bool
-DateRangeButtonWidget::custom ()
-{
-  return _popup->custom();
+  return _popup->length();
 }
 
 void
-DateRangeButtonWidget::showPopup ()
+BarLengthButtonWidget::showPopup ()
 {
   // try to center widget under the cursor
   QPoint p = QCursor::pos();
   p.setX(p.x() - (_popup->width() / 2));
   p.setY(p.y() - (_popup->height() / 2));
   _popup->exec(p);
-  
-//  _popup->exec(QCursor::pos());
 }
 
 void
-DateRangeButtonWidget::popupChanged ()
+BarLengthButtonWidget::popupChanged ()
 {
-  if (! _popup->modified())
-    return;
-  
-  if (_popup->custom())
-  {
-    setText(QString());
-    setIcon(QIcon(date_xpm));
-  }
-  else
-  {
-    setIcon(QIcon());
-    setText(_popup->range());
-  }
-  
-  emit signalRange();
+  setText(_popup->length());
+  emit signalLength();
 }

@@ -25,8 +25,6 @@
 #include <QtGui>
 
 #include "Object.h"
-#include "BarLengthButton.h"
-//#include "RangeButton.h"
 
 class ScannerWidget : public QWidget
 {
@@ -87,9 +85,8 @@ class ScannerWidget : public QWidget
     QStatusBar *_statusBar;
     QHash<int, QAction *> _actions;
     QMainWindow *_mw;
-    BarLengthButton *_barLengthButton;
-//    RangeButton *_rangeButton;
     Object *_rangeButton;
+    Object *_barLengthButton;
     QString _profile;
     QString _helpFile;
     QString _settingsPath;

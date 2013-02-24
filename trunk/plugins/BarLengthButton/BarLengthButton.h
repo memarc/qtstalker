@@ -1,7 +1,7 @@
 /*
  *  Qtstalker stock charter
  *
- *  Copyright (C) 2001-2010 Stefan S. Stratigakos
+ *  Copyright (C) 2001-2007 Stefan S. Stratigakos
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,32 +19,23 @@
  *  USA.
  */
 
-#ifndef PLUGIN_INDICATOR_DATE_RANGE_DIALOG_HPP
-#define PLUGIN_INDICATOR_DATE_RANGE_DIALOG_HPP
 
-#include <QtGui>
+#ifndef PLUGIN_BAR_LENGTH_BUTTON_H
+#define PLUGIN_BAR_LENGTH_BUTTON_H
 
-#include "Dialog.h"
+#include "Plugin.h"
 
-class DateRangeDialog : public Dialog
+class BarLengthButton : public QObject, public Plugin
 {
   Q_OBJECT
-  
+  Q_INTERFACES(Plugin)
+
   public:
-    DateRangeDialog ();
-    ~DateRangeDialog ();
-    void createTab ();
-    void setSettings (QDateTime, QDateTime);
-    void settings (QDateTime &, QDateTime &);
-
-  public slots:
-    void done ();
-    void loadSettings ();
-    void saveSettings ();
-
+    BarLengthButton ();
+    int command (PluginCommand *); 
+    
   protected:
-    QDateTimeEdit *_startDate;
-    QDateTimeEdit *_endDate;
+    QStringList _commandList;
 };
 
 #endif

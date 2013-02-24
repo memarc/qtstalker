@@ -109,6 +109,7 @@ SUBDIRS += plugins/AROON
 SUBDIRS += plugins/ATR
 SUBDIRS += plugins/BBANDS
 SUBDIRS += plugins/BOP
+SUBDIRS += plugins/BarLengthButton
 SUBDIRS += plugins/CompareValues
 SUBDIRS += plugins/CCI
 SUBDIRS += plugins/CDL

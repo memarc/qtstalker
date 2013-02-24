@@ -49,6 +49,7 @@ ScannerWidget::ScannerWidget (QMainWindow *mw, QString profile)
   _profile = profile;
   _scanning = FALSE;
   _rangeButton = 0;
+  _barLengthButton = 0;
 
   createActions();
 
@@ -72,6 +73,8 @@ ScannerWidget::ScannerWidget (QMainWindow *mw, QString profile)
 
   _rangeButton = util.object(QString("DateRangeButton"), _profile, QString());
 
+  _barLengthButton = util.object(QString("BarLengthButton"), _profile, QString());
+
   createGUI();
   
   loadSettings();
@@ -87,6 +90,9 @@ ScannerWidget::~ScannerWidget ()
   
   if (_rangeButton)
     delete _rangeButton;
+  
+  if (_barLengthButton)
+    delete _barLengthButton;
   
   qDeleteAll(_objects);
 }
@@ -211,17 +217,14 @@ ScannerWidget::createGUI ()
   connect(_symbols, SIGNAL(itemClicked(QListWidgetItem *)), this, SLOT(symbolItemClicked(QListWidgetItem *)));
   thbox->addWidget(_symbols);
 
-  _barLengthButton = new BarLengthButton(_settingsPath);
-
-//  _rangeButton = new RangeButton(_settingsPath);
-  
   // toolbar
   tb = new QToolBar;
   tb->setOrientation(Qt::Vertical);
   tb->addAction(_actions.value(_SYMBOL_ADD));
   tb->addAction(_actions.value(_SYMBOL_REMOVE));
   tb->addSeparator();
-  tb->addWidget(_barLengthButton);
+  if (_barLengthButton)
+    tb->addWidget(_barLengthButton->widget());
   if (_rangeButton)
     tb->addWidget(_rangeButton->widget());
   thbox->addWidget(tb);
@@ -295,6 +298,13 @@ ScannerWidget::loadSettings ()
     _rangeButton->message(&toc);
   }
   
+  if (_barLengthButton)
+  {
+    ObjectCommand toc(QString("load"));
+    toc.setValue(QString("QSettings"), (void *) settings);
+    _barLengthButton->message(&toc);
+  }
+  
   delete settings;
 }
 
@@ -326,6 +336,13 @@ ScannerWidget::saveSettings()
     ObjectCommand toc(QString("save"));
     toc.setValue(QString("QSettings"), (void *) settings);
     _rangeButton->message(&toc);
+  }
+
+  if (_barLengthButton)
+  {
+    ObjectCommand toc(QString("save"));
+    toc.setValue(QString("QSettings"), (void *) settings);
+    _barLengthButton->message(&toc);
   }
   
   delete settings;
@@ -399,7 +416,20 @@ ScannerWidget::scan ()
     ed = toc.getDate(QString("end_date"));
   }
   
-  ScannerThread *thread = new ScannerThread(0, _profile, tl, _barLengthButton->text(), sd, ed);
+  QString length;
+  if (_barLengthButton)
+  {
+    ObjectCommand toc(QString("length"));
+    if (! _barLengthButton->message(&toc))
+    {
+      done();
+      return;
+    }
+    
+    length = toc.getString(QString("length"));
+  }
+  
+  ScannerThread *thread = new ScannerThread(0, _profile, tl, length, sd, ed);
   connect(thread, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(threadMessage(ObjectCommand)));
   connect(this, SIGNAL(signalStop()), thread, SLOT(stop()));
   connect(thread, SIGNAL(signalDone()), this, SLOT(done()));

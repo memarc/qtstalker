@@ -1,7 +1,7 @@
 /*
  *  Qtstalker stock charter
  *
- *  Copyright (C) 2001-2010 Stefan S. Stratigakos
+ *  Copyright (C) 2001-2007 Stefan S. Stratigakos
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,40 +19,37 @@
  *  USA.
  */
 
-#ifndef PLUGIN_INDICATOR_RANGE_BUTTON_HPP
-#define PLUGIN_INDICATOR_RANGE_BUTTON_HPP
+#include "BarLengthButton.h"
+#include "BarLengthButtonObject.h"
 
 
-#include <QtGui>
-#include <QSettings>
-
-class RangeButton : public QToolButton
+BarLengthButton::BarLengthButton ()
 {
-  Q_OBJECT
+  _commandList << QString("type");
+  _commandList << QString("object");
+}
+
+int
+BarLengthButton::command (PluginCommand *pc)
+{
+  int rc = 0;
+
+  switch (_commandList.indexOf(pc->command))
+  {
+    case 0: // type
+      pc->type = QString("widget");
+      rc = 1;
+      break;
+    case 1: // object
+      pc->object = new BarLengthButtonObject(pc->profile, pc->name);
+      rc = 1;
+      break;
+    default:
+      break;
+  }
   
-  signals:
-    void signalRange ();
+  return rc;
+}
 
-  public:
-    RangeButton (QString);
-    ~RangeButton ();
-    void createGUI ();
-    void loadSettings ();
-    void saveSettings ();
-    QDateTime startDate ();
-    QDateTime endDate ();
-
-  public slots:
-    void rangeChanged (QAction *);
-    void dateRangeDialog (void *);
-    
-  private:
-    QStringList _list;
-    QDateTime _startDate;
-    QDateTime _endDate;
-    QActionGroup *_group;
-    QHash<QString, QAction *> _actions;
-    QString _settingsPath;
-};
-
-#endif
+// do not remove
+Q_EXPORT_PLUGIN2(BarLengthButton, BarLengthButton);
