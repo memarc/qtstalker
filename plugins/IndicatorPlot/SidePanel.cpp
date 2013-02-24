@@ -21,6 +21,7 @@
 
 #include "SidePanel.h"
 
+#include "Util.h"
 #include "../pics/group.xpm"
 #include "../pics/chart.xpm"
 
@@ -32,14 +33,22 @@ SidePanel::SidePanel (QString settingsPath, QString profile)
 {
   _settingsPath = settingsPath;
   _profile = profile;
+  _rangeButton = 0;
+  _barLengthButton = 0;
+  
   createGUI();
   loadSettings();
-//  setMaximumWidth(200);
 }
 
 SidePanel::~SidePanel ()
 {
   saveSettings();
+  
+  if (_rangeButton)
+    delete _rangeButton;
+  
+  if (_barLengthButton)
+    delete _barLengthButton;
 }
 
 void
@@ -102,14 +111,21 @@ SidePanel::createGUI ()
 //  vbox->addWidget(tb);
 
   // create bar length button
-  _barLengthButton = new BarLengthButton(_settingsPath);
-  connect(_barLengthButton, SIGNAL(signalLength()), this, SLOT(sendSymbolSignal()));
-  tb->addWidget(_barLengthButton);
+  Util util;
+  _barLengthButton = util.object(QString("BarLengthButton"), _profile, QString());
+  if (_barLengthButton)
+  {
+    connect(_barLengthButton, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(sendSymbolSignal()));
+    tb->addWidget(_barLengthButton->widget());
+  }
 
   // date range controls
-  _rangeButton = new RangeButton(_settingsPath);
-  connect(_rangeButton, SIGNAL(signalRange()), this, SLOT(sendSymbolSignal()));
-  tb->addWidget(_rangeButton);
+  _rangeButton = util.object(QString("DateRangeButton"), _profile, QString());
+  if (_rangeButton)
+  {
+    connect(_rangeButton, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(sendSymbolSignal()));
+    tb->addWidget(_rangeButton->widget());
+  }
 
   // create recent charts combobox
   _recentCharts = new RecentCharts(_settingsPath);
@@ -141,10 +157,10 @@ SidePanel::createGUI ()
 void
 SidePanel::loadSettings ()
 {
-  QSettings settings(_settingsPath, QSettings::NativeFormat);
-  settings.beginGroup(QString("side_panel"));
+  QSettings *settings = new QSettings(_settingsPath, QSettings::NativeFormat);
+  settings->beginGroup(QString("side_panel"));
   
-  QStringList tl = settings.value(QString("splitter")).toStringList();
+  QStringList tl = settings->value(QString("splitter")).toStringList();
   QList<int> sizes;
   if (! tl.size())
     tl << QString("200") << QString("100");
@@ -152,25 +168,59 @@ SidePanel::loadSettings ()
     sizes << tl.at(pos).toInt();
   setSizes(sizes);  
 
-  _tabs->setCurrentIndex(settings.value("tab", 0).toInt());
+  _tabs->setCurrentIndex(settings->value("tab", 0).toInt());
+  
+  // range button  
+  if (_rangeButton)
+  {
+    ObjectCommand toc(QString("load"));
+    toc.setValue(QString("QSettings"), (void *) settings);
+    _rangeButton->message(&toc);
+  }
+  
+  // bar length button  
+  if (_barLengthButton)
+  {
+    ObjectCommand toc(QString("load"));
+    toc.setValue(QString("QSettings"), (void *) settings);
+    _barLengthButton->message(&toc);
+  }
+  
+  delete settings;
 }
 
 void
 SidePanel::saveSettings ()
 {
-  QSettings settings(_settingsPath, QSettings::NativeFormat);
-  settings.beginGroup(QString("side_panel"));
+  QSettings *settings = new QSettings(_settingsPath, QSettings::NativeFormat);
+  settings->beginGroup(QString("side_panel"));
   
   // save splitter sizes
   QStringList l;
   QList<int> sl = sizes();
   for (int pos = 0; pos < sl.size(); pos++)
     l << QString::number(sl.at(pos));
-  settings.setValue(QString("splitter"), l);
+  settings->setValue(QString("splitter"), l);
   
-  settings.setValue("tab", _tabs->currentIndex());
+  settings->setValue("tab", _tabs->currentIndex());
+
+  // range button
+  if (_rangeButton)
+  {
+    ObjectCommand toc(QString("save"));
+    toc.setValue(QString("QSettings"), (void *) settings);
+    _rangeButton->message(&toc);
+  }
   
-  settings.sync();
+  // bar length button
+  if (_barLengthButton)
+  {
+    ObjectCommand toc(QString("save"));
+    toc.setValue(QString("QSettings"), (void *) settings);
+    _barLengthButton->message(&toc);
+  }
+  
+  delete settings;
 }
 
 void
@@ -239,10 +289,22 @@ SidePanel::setInfo (Data d)
 void
 SidePanel::sendSymbolSignal ()
 {
+  if (! _rangeButton)
+    return;
+  
+  if (! _barLengthButton)
+    return;
+  
+  ObjectCommand droc(QString("dates"));
+  _rangeButton->message(&droc);
+  
+  ObjectCommand bloc(QString("length"));
+  _barLengthButton->message(&bloc);
+  
   emit signalSymbol(_currentSymbol,
-                    _barLengthButton->length(),
-		    _rangeButton->startDate(),
-		    _rangeButton->endDate());
+                    bloc.getString(QString("length")),
+		    droc.getDate(QString("start_date")),
+		    droc.getDate(QString("end_date")));
 }
 
 void

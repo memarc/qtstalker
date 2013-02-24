@@ -19,32 +19,34 @@
  *  USA.
  */
 
-#ifndef PLUGIN_INDICATOR_DATE_RANGE_DIALOG_HPP
-#define PLUGIN_INDICATOR_DATE_RANGE_DIALOG_HPP
+#ifndef PLUGIN_BAR_LENGTH_BUTTON_WIDGET_HPP
+#define PLUGIN_BAR_LENGTH_BUTTON_WIDGET_HPP
+
 
 #include <QtGui>
+#include "BarLengthButtonPopupWidget.h"
 
-#include "Dialog.h"
-
-class DateRangeDialog : public Dialog
+class BarLengthButtonWidget : public QToolButton
 {
   Q_OBJECT
   
+  signals:
+    void signalLength ();
+
   public:
-    DateRangeDialog ();
-    ~DateRangeDialog ();
-    void createTab ();
-    void setSettings (QDateTime, QDateTime);
-    void settings (QDateTime &, QDateTime &);
+    BarLengthButtonWidget (QString profile);
+    ~BarLengthButtonWidget ();
+    void createGUI ();
+    QString length ();
+    void setSettings (QStringList l, QString length);
 
   public slots:
-    void done ();
-    void loadSettings ();
-    void saveSettings ();
-
-  protected:
-    QDateTimeEdit *_startDate;
-    QDateTimeEdit *_endDate;
+    void showPopup ();
+    void popupChanged ();
+    
+  private:
+    QString _profile;
+    BarLengthButtonPopupWidget *_popup;
 };
 
 #endif

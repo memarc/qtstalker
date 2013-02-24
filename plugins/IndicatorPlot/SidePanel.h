@@ -24,12 +24,11 @@
 
 #include <QtGui>
 
+#include "Object.h"
 #include "Data.h"
 #include "ChartPage.h"
 #include "GroupPage.h"
 #include "RecentCharts.h"
-#include "BarLengthButton.h"
-#include "RangeButton.h"
 #include "ConfigureButton.h"
 
 class SidePanel : public QSplitter
@@ -65,8 +64,8 @@ class SidePanel : public QSplitter
     QSlider *_slider;
     QTextEdit *_info;
     RecentCharts *_recentCharts;
-    BarLengthButton *_barLengthButton;
-    RangeButton *_rangeButton;
+    Object *_barLengthButton;
+    Object *_rangeButton;
     ConfigureButton *_configureButton;
     QString _settingsPath;
     QString _currentSymbol;

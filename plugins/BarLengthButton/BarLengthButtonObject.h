@@ -19,41 +19,37 @@
  *  USA.
  */
 
-#ifndef PLUGIN_INDICATOR_RANGE_BUTTON_HPP
-#define PLUGIN_INDICATOR_RANGE_BUTTON_HPP
+#ifndef PLUGIN_BAR_LENGTH_BUTTON_OBJECT_HPP
+#define PLUGIN_BAR_LENGTH_BUTTON_OBJECT_HPP
+
+#include <QStringList>
+
+#include "Object.h"
+#include "BarLengthButtonWidget.h"
 
 
-#include <QtGui>
-#include <QSettings>
-
-class RangeButton : public QToolButton
+class BarLengthButtonObject : public Object
 {
   Q_OBJECT
-  
-  signals:
-    void signalRange ();
 
   public:
-    RangeButton (QString);
-    ~RangeButton ();
-    void createGUI ();
-    void loadSettings ();
-    void saveSettings ();
-    QDateTime startDate ();
-    QDateTime endDate ();
-    int dates (QString range, QDateTime &sd, QDateTime &ed);
-
-  public slots:
-    void rangeChanged (QAction *);
-    void dateRangeDialog (void *);
+    BarLengthButtonObject (QString profile, QString name);
+    ~BarLengthButtonObject ();
+    int length (ObjectCommand *);
+    int load (ObjectCommand *);
+    int save (ObjectCommand *);
+    int list (ObjectCommand *);
+    int interval (ObjectCommand *);
+    QWidget * widget ();
+    
+  public slots:    
+    int message (ObjectCommand *);
+    void lengthChanged ();
     
   private:
-    QStringList _list;
-    QDateTime _startDate;
-    QDateTime _endDate;
-    QActionGroup *_group;
-    QHash<QString, QAction *> _actions;
-    QString _settingsPath;
+    QStringList _commandList;
+    QStringList _lengthList;
+    BarLengthButtonWidget *_widget;
 };
 
 #endif

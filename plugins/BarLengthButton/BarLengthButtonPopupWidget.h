@@ -19,33 +19,29 @@
  *  USA.
  */
 
-#ifndef PLUGIN_INDICATOR_DATE_RANGE_CONTROL_HPP
-#define PLUGIN_INDICATOR_DATE_RANGE_CONTROL_HPP
+#ifndef PLUGIN_BAR_LENGTH_BUTTON_POPUP_WIDGET_HPP
+#define PLUGIN_BAR_LENGTH_BUTTON_POPUP_WIDGET_HPP
 
-#include <QToolButton>
-#include <QMenu>
-#include <QStringList>
+#include <QtGui>
 
-class DateRangeControl : public QToolButton
+class BarLengthButtonPopupWidget : public QMenu
 {
   Q_OBJECT
-
-//  signals:
-//    void signalDateRangeChanged ();
-
+  
   public:
-    DateRangeControl ();
-    void createMenu ();
-    int dateRange ();
+    BarLengthButtonPopupWidget (QWidget *);
+    void createGUI ();
+    void setSettings (QStringList l, QString length);
+    QString length ();
+    bool modified ();
 
   public slots:
-    void rangeChanged (QAction *);
+    void setModified ();
+    void clear ();
 
-  private:
-    int _dateRange;
-    QMenu *_menu;
-    QStringList _lengthList;
-    QStringList _shortList;
+  protected:
+    QComboBox *_length;
+    bool _modified;
 };
 
 #endif
