@@ -25,7 +25,6 @@
 #include <QStringList>
 
 #include "Object.h"
-#include "DateRangeButtonDialog.h"
 #include "DateRangeButtonWidget.h"
 
 
