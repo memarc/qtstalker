@@ -152,7 +152,7 @@ SymbolSelectDialog::createTab ()
   l << tr("Symbol") << tr("Name");
 
   _searchList = new QTreeWidget;
-  _searchList->setSortingEnabled(FALSE);
+  _searchList->setSortingEnabled(TRUE);
   _searchList->setRootIsDecorated(FALSE);
   _searchList->setHeaderLabels(l);
   _searchList->setSelectionMode(QAbstractItemView::ExtendedSelection);

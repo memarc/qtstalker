@@ -43,12 +43,19 @@ GroupObject::GroupObject (QString profile, QString name)
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("Group") << QString("db") << QString("groups");
   _file = tl.join("/");
+
+  Util util;
+  _dialog = util.object(QString("SymbolSelect"), QString(), QString());
+  if (_dialog)
+    connect(_dialog, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(dialogMessage(ObjectCommand)));
   
   load();
 }
 
 GroupObject::~GroupObject ()
 {
+  if (_dialog)
+    delete _dialog;
 }
 
 int
@@ -87,32 +94,8 @@ GroupObject::load ()
     return 0;
   
   QSettings settings(_file, QSettings::NativeFormat);
+  _symbols = settings.value(_name).toStringList();
   
-  QStringList symbols = settings.value(_name).toStringList();
-  if (! symbols.size())
-    return 1;
-  
-  Util util;
-  Object *db = util.object(QString("Symbol"), QString(), QString());
-  if (! db)
-  {
-    qDebug() << "GroupObject::load: invalid Symbol";
-    return 0;
-  }
-  
-  ObjectCommand toc(QString("info"));
-  toc.setValue(QString("names"), symbols);
-  if (! db->message(&toc))
-  {
-    qDebug() << "GroupObject::load: message error" << db->plugin() << toc.command();
-    delete db;
-    return 0;
-  }
-  else
-    delete db;
-
-  _symbols = toc.getDatas();
-
   return 1;
 }
 
@@ -123,17 +106,7 @@ GroupObject::save ()
     return 0;
   
   QSettings settings(_file, QSettings::NativeFormat);
-  
-  QStringList tl;
-  QHashIterator<QString, Data> it(_symbols);
-  while (it.hasNext())
-  {
-    it.next();
-    tl << it.key();
-  }
-  
-  settings.setValue(_name, tl);
-  
+  settings.setValue(_name, _symbols);
   settings.sync();
 
   return 1;
@@ -167,32 +140,47 @@ GroupObject::dialog (ObjectCommand *)
 {
   if (_name.isEmpty())
     return 0;
+
+  if (! _dialog)
+    return 0;
   
-  GroupDialog *d = new GroupDialog(_name);
-  d->setSettings(_symbols);
-  connect(d, SIGNAL(signalDone(void *)), this, SLOT(dialogDone(void *)));
-  d->setModified(FALSE);
-  d->show();
+  ObjectCommand toc(QString("settings"));
+  _dialog->message(&toc);
+  
+  toc.setValue(QString("symbols"), _symbols);
+  
+  toc.setCommand(QString("set_settings"));
+  _dialog->message(&toc);
+  
+  toc.setCommand(QString("dialog"));
+  _dialog->message(&toc);
+
   return 1;
 }
 
 void
-GroupObject::dialogDone (void *dialog)
+GroupObject::dialogMessage (ObjectCommand oc)
 {
-  GroupDialog *d = (GroupDialog *) dialog;
-  d->settings(_symbols);
+  if (oc.command() != QString("symbols_changed"))
+    return;
+  
+  ObjectCommand toc(QString("settings"));
+  _dialog->message(&toc);
+  
+  _symbols = toc.getList(QString("symbols"));
+  
   save();
   
-  ObjectCommand toc(QString("modified"));
-  toc.setValue(QString("group"), _name);
-  toc.setDatas(_symbols);
-  emit signalMessage(toc);
+  ObjectCommand moc(QString("modified"));
+  moc.setValue(QString("group"), _name);
+  moc.setValue(QString("symbols"), _symbols);
+  emit signalMessage(moc);
 }
 
 int
 GroupObject::symbols (ObjectCommand *oc)
 {
-  oc->setDatas(_symbols);
+  oc->setValue(QString("symbols"), _symbols);
   return 1;
 }
 
@@ -211,34 +199,9 @@ GroupObject::add (ObjectCommand *oc)
   load();
   
   key = QString("list");
-  QStringList tl = oc->getList(key);
+  _symbols << oc->getList(key);
+  _symbols.removeDuplicates();
 
-  Util util;
-  Object *db = util.object(QString("Symbol"), QString(), QString());
-  if (! db)
-  {
-    qDebug() << "GroupObject::add: invalid Symbol object";
-    return 0;
-  }
-  
-  ObjectCommand toc(QString("info"));
-  toc.setValue(QString("names"), tl);
-  if (! db->message(&toc))
-  {
-    qDebug() << "GroupObject::load: message error" << db->plugin() << toc.command();
-    delete db;
-    return 0;
-  }
-  else
-    delete db;
-
-  QHashIterator<QString, Data> it(toc.getDatas());
-  while (it.hasNext())
-  {
-    it.next();
-    _symbols.insert(it.key(), it.value());
-  }
-  
   save();
   
   return 1;
