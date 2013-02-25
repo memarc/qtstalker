@@ -24,8 +24,7 @@
 
 #include <QtGui>
 
-#include "ColorButton.h"
-#include "FontButton.h"
+#include "Object.h"
 #include "Dialog.h"
 
 class MarkerTextDialog : public Dialog
@@ -47,8 +46,8 @@ class MarkerTextDialog : public Dialog
   private:
     QDoubleSpinBox *_price;
     QDateTimeEdit *_date;
-    ColorButton *_color;
-    FontButton *_font;
+    Object *_color;
+    Object *_font;
     QLineEdit *_text;
     QComboBox *_plot;
 };

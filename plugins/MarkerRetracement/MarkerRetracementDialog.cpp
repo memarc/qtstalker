@@ -20,7 +20,7 @@
  */
 
 #include "MarkerRetracementDialog.h"
-#include "Object.h"
+#include "Util.h"
 
 #include <QDebug>
 
@@ -34,6 +34,9 @@ MarkerRetracementDialog::MarkerRetracementDialog (QHash<QString, void *> l, QStr
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("MarkerRetracement") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
+
+  Util util;
+  _color = util.object(QString("ColorButton"), QString(), QString("color"));
   
   createTab(l);
   loadSettings();
@@ -42,6 +45,9 @@ MarkerRetracementDialog::MarkerRetracementDialog (QHash<QString, void *> l, QStr
 MarkerRetracementDialog::~MarkerRetracementDialog ()
 {
   saveSettings();
+  
+  if (_color)
+    delete _color;
 }
 
 void
@@ -72,11 +78,13 @@ MarkerRetracementDialog::createTab (QHash<QString, void *> l)
     _plot->addItems(tl);
     form->addRow(tr("Plot"), _plot);
   }
-
+  
   // color
-  _color = new ColorButton(this, QColor(Qt::red));
-  connect(_color, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Color"), _color);
+  if (_color)
+  {
+    connect(_color, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Color"), _color->widget());
+  }
   
   // start date
   _startDate = new QDateTimeEdit;
@@ -158,7 +166,13 @@ void
 MarkerRetracementDialog::setSettings (QColor c, QDateTime sd, QDateTime ed, double hp, double lp,
 		                      bool extend, double l1, double l2, double l3, QString po)
 {
-  _color->setColor(c);
+  if (_color)
+  {
+    ObjectCommand toc(QString("set_color"));
+    toc.setValue(QString("color"), c);
+    _color->message(&toc);
+  }
+  
   _startDate->setDateTime(sd);
   _endDate->setDateTime(ed);
   _highPrice->setValue(hp);
@@ -178,7 +192,14 @@ void
 MarkerRetracementDialog::settings (QColor &c, QDateTime &sd, QDateTime &ed, double &hp, double &lp,
 		                   bool &extend, double &l1, double &l2, double &l3, QString &po)
 {
-  c = _color->color();
+  if (_color)
+  {
+    QString key("color");
+    ObjectCommand toc(key);
+    if (_color->message(&toc))
+      c = toc.getColor(key);
+  }
+  
   sd = _startDate->dateTime();
   ed = _endDate->dateTime();
   hp = _highPrice->value();

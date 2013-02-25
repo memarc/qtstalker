@@ -19,32 +19,23 @@
  *  USA.
  */
 
-#ifndef FILE_BUTTON_HPP
-#define FILE_BUTTON_HPP
 
-#include <QPushButton>
-#include <QStringList>
+#ifndef PLUGIN_INDICATOR_INPUT_H
+#define PLUGIN_INDICATOR_INPUT_H
 
-class FileButton : public QPushButton
+#include "Plugin.h"
+
+class IndicatorInput : public QObject, public Plugin
 {
   Q_OBJECT
-
-  signals:
-    void signalSelectionChanged ();
+  Q_INTERFACES(Plugin)
 
   public:
-    FileButton (QWidget *);
-    QStringList files ();
-    void updateButtonText ();
-    void setPath (QString);
-
-  public slots:
-    void fileDialog ();
-    void setFiles (QStringList);
-        
-  private:
-    QStringList _files;
-    QString _path;
+    IndicatorInput ();
+    int command (PluginCommand *); 
+    
+  protected:
+    QStringList _commandList;
 };
 
 #endif

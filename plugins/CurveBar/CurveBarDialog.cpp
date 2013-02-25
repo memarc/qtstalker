@@ -21,7 +21,6 @@
 
 #include "CurveBarDialog.h"
 #include "Util.h"
-#include "Object.h"
 
 
 CurveBarDialog::CurveBarDialog (QHash<QString, void *> l, QString name) : Dialog (0, name)
@@ -31,6 +30,11 @@ CurveBarDialog::CurveBarDialog (QHash<QString, void *> l, QString name) : Dialog
   tl << dir.absolutePath() << QString("OTA") << QString("CurveBar") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
 
+  Util util;
+  _color = util.object(QString("ColorButton"), QString(), QString("color"));
+
+  _input = util.object(QString("IndicatorInput"), QString(), QString("input"));
+  
   createPlotTab(l);
   loadSettings();
 }
@@ -38,6 +42,12 @@ CurveBarDialog::CurveBarDialog (QHash<QString, void *> l, QString name) : Dialog
 CurveBarDialog::~CurveBarDialog ()
 {
   saveSettings();
+  
+  if (_color)
+    delete _color;
+  
+  if (_input)
+    delete _input;
 }
 
 void
@@ -71,15 +81,25 @@ CurveBarDialog::createPlotTab (QHash<QString, void *> l)
   connect(_plot, SIGNAL(currentIndexChanged(int)), this, SLOT(modified()));
   form->addRow(tr("Plot"), _plot);
 
-  _input = new InputObjectWidget;
-  _input->setObjects(tobjects);
-  connect(_input, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Input"), _input);
+  // input
+  if (_input)
+  {
+    QWidget *w = _input->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(tobjects);
+    _input->message(&toc);
+    
+    connect(_input, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Input"), w);
+  }
   
   // color
-  _color = new ColorButton (w, QColor(Qt::red));
-  connect(_color, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Color"), _color);
+  if (_color)
+  {
+    connect(_color, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Color"), _color->widget());
+  }
   
   // label
   _label = new QLineEdit;
@@ -113,10 +133,26 @@ CurveBarDialog::saveSettings()
 void
 CurveBarDialog::setSettings (QColor c, QString l, QString i, QString k, QString p)
 {
-  _color->setColor(c);
+  if (_color)
+  {
+    ObjectCommand toc(QString("set_color"));
+    toc.setValue(QString("color"), c);
+    _color->message(&toc);
+  }
+
+  if (_input)
+  {
+    ObjectCommand toc(QString("set_input"));
+    toc.setValue(QString("input"), i);
+    _input->message(&toc);
+
+    toc.setCommand(QString("set_key"));
+    toc.setValue(QString("key"), tr("Input"));
+    toc.setValue(QString("data"), k);
+    _input->message(&toc);
+  }
+  
   _label->setText(l);
-  _input->setInput(i);
-  _input->setKey(tr("Input"), k);
   
   if (! p.isEmpty())
     _plot->setCurrentIndex(_plot->findText(p));
@@ -125,9 +161,26 @@ CurveBarDialog::setSettings (QColor c, QString l, QString i, QString k, QString 
 void
 CurveBarDialog::settings (QColor &c, QString &l, QString &i, QString &k, QString &p)
 {
-  c = _color->color();
+  if (_color)
+  {
+    QString key("color");
+    ObjectCommand toc(key);
+    if (_color->message(&toc))
+      c = toc.getColor(key);
+  }
+
+  if (_input)
+  {
+    ObjectCommand toc(QString("input"));
+    _input->message(&toc);
+    i = toc.getString(QString("input"));
+
+    toc.setCommand(QString("key"));
+    toc.setValue(QString("key"), tr("Input"));
+    _input->message(&toc);
+    k = toc.getString(QString("data"));
+  }
+  
   l = _label->text();
-  i = _input->input();
-  k = _input->key(tr("Input"));
   p = _plot->currentText();
 }

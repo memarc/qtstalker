@@ -21,7 +21,6 @@
 
 #include "CurveHistogramDialog.h"
 #include "Util.h"
-#include "Object.h"
 
 
 CurveHistogramDialog::CurveHistogramDialog (QHash<QString, void *> l, QString name) : Dialog (0, name)
@@ -31,6 +30,11 @@ CurveHistogramDialog::CurveHistogramDialog (QHash<QString, void *> l, QString na
   tl << dir.absolutePath() << QString("OTA") << QString("CurveHistogram") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
 
+  Util util;
+  _color = util.object(QString("ColorButton"), QString(), QString("color"));
+
+  _input = util.object(QString("IndicatorInput"), QString(), QString("input"));
+
   createPlotTab(l);
   loadSettings();
 }
@@ -38,6 +42,11 @@ CurveHistogramDialog::CurveHistogramDialog (QHash<QString, void *> l, QString na
 CurveHistogramDialog::~CurveHistogramDialog ()
 {
   saveSettings();
+  
+  if (_color)
+    delete _color;
+  if (_input)
+    delete _input;
 }
 
 void
@@ -71,15 +80,25 @@ CurveHistogramDialog::createPlotTab (QHash<QString, void *> l)
   connect(_plot, SIGNAL(currentIndexChanged(int)), this, SLOT(modified()));
   form->addRow(tr("Plot"), _plot);
 
-  _input = new InputObjectWidget;
-  _input->setObjects(tl);
-  connect(_input, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Input"), _input);
+  // input
+  if (_input)
+  {
+    QWidget *w = _input->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(tl);
+    _input->message(&toc);
+    
+    connect(_input, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Input"), w);
+  }
   
   // color
-  _color = new ColorButton(0, QColor(Qt::red));
-  connect(_color, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Color"), _color);
+  if (_color)
+  {
+    connect(_color, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Color"), _color->widget());
+  }
   
   // label
   _label = new QLineEdit;
@@ -113,10 +132,26 @@ CurveHistogramDialog::saveSettings()
 void
 CurveHistogramDialog::setSettings (QColor c, QString l, QString i, QString ik, QString po)
 {
-  _color->setColor(c);
+  if (_color)
+  {
+    ObjectCommand toc(QString("set_color"));
+    toc.setValue(QString("color"), c);
+    _color->message(&toc);
+  }
+
+  if (_input)
+  {
+    ObjectCommand toc(QString("set_input"));
+    toc.setValue(QString("input"), i);
+    _input->message(&toc);
+
+    toc.setCommand(QString("set_key"));
+    toc.setValue(QString("key"), tr("Input"));
+    toc.setValue(QString("data"), ik);
+    _input->message(&toc);
+  }
+  
   _label->setText(l);
-  _input->setInput(i);
-  _input->setKey(tr("Input"), ik);
   
   if (! po.isEmpty())
     _plot->setCurrentIndex(_plot->findText(po));
@@ -125,9 +160,26 @@ CurveHistogramDialog::setSettings (QColor c, QString l, QString i, QString ik, Q
 void
 CurveHistogramDialog::settings (QColor &c, QString &l, QString &i, QString &ik, QString &po)
 {
-  c = _color->color();
-  i = _input->input();
-  ik = _input->key(tr("Input"));
+  if (_color)
+  {
+    QString key("color");
+    ObjectCommand toc(key);
+    if (_color->message(&toc))
+      c = toc.getColor(key);
+  }
+
+  if (_input)
+  {
+    ObjectCommand toc(QString("input"));
+    _input->message(&toc);
+    i = toc.getString(QString("input"));
+
+    toc.setCommand(QString("key"));
+    toc.setValue(QString("key"), tr("Input"));
+    _input->message(&toc);
+    ik = toc.getString(QString("data"));
+  }
+  
   l = _label->text();
   po = _plot->currentText();
 }

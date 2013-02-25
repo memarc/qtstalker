@@ -25,6 +25,7 @@
 #include "YahooHistoryWidget.h"
 #include "YahooHistoryObject.h"
 #include "YahooHistoryThread.h"
+#include "Util.h"
 
 #include "../../pics/download.xpm"
 #include "../../pics/stop.xpm"
@@ -39,9 +40,6 @@ YahooHistoryWidget::YahooHistoryWidget (QMainWindow *mw, QString profile)
   _profile = profile;
   _downloading = FALSE;
   
-  createActions();
-  createGUI();
-
   QStringList tl;
   tl << QString("OTA -") << QString("Yahoo") << tr("History") << QString("(") << _profile << QString(")");
   _mw->setWindowTitle(tl.join(" "));
@@ -51,6 +49,13 @@ YahooHistoryWidget::YahooHistoryWidget (QMainWindow *mw, QString profile)
   tl << dir.absolutePath() << QString("OTA") << QString("YahooHistory") << QString("profile") << _profile;
   _dbPath = tl.join("/");
 
+  Util util;
+  _symbolButton = util.object(QString("FileButton"), _profile, QString("files"));
+
+  createActions();
+  
+  createGUI();
+
   loadSettings();
   
   buttonStatus();
@@ -59,6 +64,9 @@ YahooHistoryWidget::YahooHistoryWidget (QMainWindow *mw, QString profile)
 YahooHistoryWidget::~YahooHistoryWidget ()
 {
   saveSettings();
+  
+  if (_symbolButton)
+    delete _symbolButton;
 }
 
 void
@@ -129,9 +137,11 @@ YahooHistoryWidget::createGUI ()
   form->addRow (tr("End Date"), _endDate);
   
   // symbol file
-  _symbolButton = new FileButton(0);
-  connect(_symbolButton, SIGNAL(signalSelectionChanged()), this, SLOT(buttonStatus()));
-  form->addRow (tr("Symbol File"), _symbolButton);
+  if (_symbolButton)
+  {
+    connect(_symbolButton, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(buttonStatus()));
+    form->addRow(tr("Symbol File"), _symbolButton->widget());
+  }
   
   // log
   QGroupBox *gbox = new QGroupBox;
@@ -178,7 +188,12 @@ YahooHistoryWidget::loadSettings ()
   _startDate->setDateTime(sd);
 
   // symbol files
-  _symbolButton->setFiles(settings.value(QString("symbol_files")).toStringList());
+  if (_symbolButton)
+  {
+    ObjectCommand toc(QString("set_files"));
+    toc.setValue(QString("files"), settings.value(QString("symbol_files")).toStringList());
+    _symbolButton->message(&toc);
+  }
 }
 
 void
@@ -188,18 +203,27 @@ YahooHistoryWidget::saveSettings()
   settings.setValue(QString("size"), _mw->size());
   settings.setValue(QString("pos"), _mw->pos());
   settings.setValue(QString("start_date"), _startDate->dateTime());
-  settings.setValue(QString("symbol_files"), _symbolButton->files());
+
+  if (_symbolButton)
+  {
+    QString key("files");
+    ObjectCommand toc(key);
+    if (_symbolButton->message(&toc))
+      settings.setValue(QString("symbol_files"), toc.getList(key));
+  }
 }
 
 void
 YahooHistoryWidget::help ()
 {
+/*  
   QStringList tl;
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("bin") << QString("OTA -a Help");
   
   if (! QProcess::startDetached(tl.join(" ")))
     qDebug() << "OTA::help: error launching process" << tl;
+*/
 }
 
 void
@@ -212,7 +236,15 @@ YahooHistoryWidget::downloadHistory ()
   buttonStatus();
 
   // parse symbol files
-  QStringList tl = _symbolButton->files();
+  QStringList tl;
+  if (_symbolButton)
+  {
+    QString key("files");
+    ObjectCommand toc(key);
+    if (_symbolButton->message(&toc))
+      tl = toc.getList(key);
+  }
+  
   QStringList symbols;
   for (int pos = 0; pos < tl.size(); pos++)
   {
@@ -266,7 +298,14 @@ YahooHistoryWidget::buttonStatus ()
   
   int count = 0;
 
-  QStringList tl = _symbolButton->files();
+  QStringList tl;
+  if (_symbolButton)
+  {
+    QString key("files");
+    ObjectCommand toc(key);
+    if (_symbolButton->message(&toc))
+      tl = toc.getList(key);
+  }
   if (tl.size())
     count++;
 //qDebug() << "YahooHistoryWidget::buttonStatus: files=" << tl.size();

@@ -20,7 +20,7 @@
  */
 
 #include "MarkerTLineDialog.h"
-#include "Object.h"
+#include "Util.h"
 
 #include <QDebug>
 
@@ -34,6 +34,9 @@ MarkerTLineDialog::MarkerTLineDialog (QHash<QString, void *> l, QString name) : 
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("MarkerTLine") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
+
+  Util util;
+  _color = util.object(QString("ColorButton"), QString(), QString("color"));
   
   createTab(l);
   loadSettings();
@@ -42,6 +45,9 @@ MarkerTLineDialog::MarkerTLineDialog (QHash<QString, void *> l, QString name) : 
 MarkerTLineDialog::~MarkerTLineDialog ()
 {
   saveSettings();
+  
+  if (_color)
+    delete _color;
 }
 
 void
@@ -72,11 +78,13 @@ MarkerTLineDialog::createTab (QHash<QString, void *> l)
     _plot->addItems(tl);
     form->addRow(tr("Plot"), _plot);
   }
-
+  
   // color
-  _color = new ColorButton(this, QColor(Qt::red));
-  connect(_color, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Color"), _color);
+  if (_color)
+  {
+    connect(_color, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Color"), _color->widget());
+  }
   
   // start date
   _startDate = new QDateTimeEdit;
@@ -133,9 +141,15 @@ MarkerTLineDialog::saveSettings ()
 }
 
 void
-MarkerTLineDialog::setSettings (QColor color, QDateTime sd, QDateTime ed, double sp, double ep, bool ex, QString po)
+MarkerTLineDialog::setSettings (QColor c, QDateTime sd, QDateTime ed, double sp, double ep, bool ex, QString po)
 {
-  _color->setColor(color);
+  if (_color)
+  {
+    ObjectCommand toc(QString("set_color"));
+    toc.setValue(QString("color"), c);
+    _color->message(&toc);
+  }
+  
   _startDate->setDateTime(sd);
   _endDate->setDateTime(ed);
   _startPrice->setValue(sp);
@@ -149,9 +163,16 @@ MarkerTLineDialog::setSettings (QColor color, QDateTime sd, QDateTime ed, double
 }
 
 void
-MarkerTLineDialog::settings (QColor &color, QDateTime &sd, QDateTime &ed, double &sp, double &ep, bool &ex, QString &po)
+MarkerTLineDialog::settings (QColor &c, QDateTime &sd, QDateTime &ed, double &sp, double &ep, bool &ex, QString &po)
 {
-  color = _color->color();
+  if (_color)
+  {
+    QString key("color");
+    ObjectCommand toc(key);
+    if (_color->message(&toc))
+      c = toc.getColor(key);
+  }
+  
   sd = _startDate->dateTime();
   ed = _endDate->dateTime();
   sp = _startPrice->value();

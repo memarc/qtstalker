@@ -1,7 +1,7 @@
 /*
  *  Qtstalker stock charter
  *
- *  Copyright (C) 2001-2010 Stefan S. Stratigakos
+ *  Copyright (C) 2001-2007 Stefan S. Stratigakos
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,35 +19,37 @@
  *  USA.
  */
 
-#ifndef PLUGIN_MARKER_BUY_DIALOG_HPP
-#define PLUGIN_MARKER_BUY_DIALOG_HPP
+#include "IndicatorInput.h"
+#include "IndicatorInputObject.h"
 
-#include <QtGui>
 
-#include "Object.h"
-#include "Dialog.h"
-
-class MarkerBuyDialog : public Dialog
+IndicatorInput::IndicatorInput ()
 {
-  Q_OBJECT
+  _commandList << QString("type");
+  _commandList << QString("object");
+}
+
+int
+IndicatorInput::command (PluginCommand *pc)
+{
+  int rc = 0;
+
+  switch (_commandList.indexOf(pc->command))
+  {
+    case 0: // type
+      pc->type = QString("widget");
+      rc = 1;
+      break;
+    case 1: // object
+      pc->object = new IndicatorInputObject(pc->profile, pc->name);
+      rc = 1;
+      break;
+    default:
+      break;
+  }
   
-  public:
-    MarkerBuyDialog (QHash<QString, void *>, QString name);
-    ~MarkerBuyDialog ();
-    void createTab (QHash<QString, void *>);
-    void setSettings (QColor color, QDateTime date, double price, QString po);
-    void settings (QColor &color, QDateTime &date, double &price, QString &po);
+  return rc;
+}
 
-  public slots:
-    void done ();
-    void saveSettings ();
-    void loadSettings ();
-
-  private:
-    QDoubleSpinBox *_price;
-    QDateTimeEdit *_date;
-    Object *_color;
-    QComboBox *_plot;
-};
-
-#endif
+// do not remove
+Q_EXPORT_PLUGIN2(IndicatorInput, IndicatorInput);

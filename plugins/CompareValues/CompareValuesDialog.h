@@ -25,7 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class CompareValuesDialog : public Dialog
 {
@@ -46,8 +46,8 @@ class CompareValuesDialog : public Dialog
   
   protected:
     QComboBox *_op;
-    InputObjectWidget *_input;
-    InputObjectWidget *_input2;
+    Object *_input;
+    Object *_input2;
     QCheckBox *_constant;
     QDoubleSpinBox *_value;
 };

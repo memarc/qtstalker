@@ -25,7 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class SZDialog : public Dialog
 {
@@ -44,7 +44,7 @@ class SZDialog : public Dialog
     void saveSettings ();
   
   protected:
-    InputObjectWidget *_input;
+    Object *_input;
     QSpinBox *_period;
     QSpinBox *_noDecline;
     QDoubleSpinBox *_coeff;

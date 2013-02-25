@@ -22,13 +22,13 @@
 // *************************************************************************************************
 // *************************************************************************************************
 
-#ifndef INPUT_OBJECT_WIDGET_HPP
-#define INPUT_OBJECT_WIDGET_HPP
+#ifndef PLUGIN_INDICATOR_INPUT_WIDGET_HPP
+#define PLUGIN_INDICATOR_INPUT_WIDGET_HPP
 
 #include <QtGui>
 
 
-class InputObjectWidget : public QWidget
+class IndicatorInputWidget : public QWidget
 {
   Q_OBJECT
 
@@ -36,8 +36,8 @@ class InputObjectWidget : public QWidget
     void valueChanged();
 
   public:
-    InputObjectWidget ();
-    ~InputObjectWidget ();
+    IndicatorInputWidget ();
+    ~IndicatorInputWidget ();
     void setObjects (QHash<QString, void *>);
     void setInput (QString);
     QString input ();

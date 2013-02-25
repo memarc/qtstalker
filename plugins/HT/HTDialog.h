@@ -25,7 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class HTDialog : public Dialog
 {
@@ -45,7 +45,7 @@ class HTDialog : public Dialog
   
   protected:
     QComboBox *_method;
-    InputObjectWidget *_input;
+    Object *_input;
 };
 
 #endif

@@ -20,7 +20,7 @@
  */
 
 #include "MarkerVLineDialog.h"
-#include "Object.h"
+#include "Util.h"
 
 #include <QDebug>
 
@@ -34,6 +34,9 @@ MarkerVLineDialog::MarkerVLineDialog (QHash<QString, void *> l, QString name) : 
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("MarkerVLine") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
+
+  Util util;
+  _color = util.object(QString("ColorButton"), QString(), QString("color"));
   
   createTab(l);
   loadSettings();
@@ -42,6 +45,9 @@ MarkerVLineDialog::MarkerVLineDialog (QHash<QString, void *> l, QString name) : 
 MarkerVLineDialog::~MarkerVLineDialog ()
 {
   saveSettings();
+  
+  if (_color)
+    delete _color;
 }
 
 void
@@ -72,11 +78,13 @@ MarkerVLineDialog::createTab (QHash<QString, void *> l)
     _plot->addItems(tl);
     form->addRow(tr("Plot"), _plot);
   }
-
+  
   // color
-  _color = new ColorButton(this, QColor(Qt::red));
-  connect(_color, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Color"), _color);
+  if (_color)
+  {
+    connect(_color, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Color"), _color->widget());
+  }
   
   // date
   _date = new QDateTimeEdit;
@@ -109,9 +117,15 @@ MarkerVLineDialog::saveSettings ()
 }
 
 void
-MarkerVLineDialog::setSettings (QColor color, QDateTime date, QString po)
+MarkerVLineDialog::setSettings (QColor c, QDateTime date, QString po)
 {
-  _color->setColor(color);
+  if (_color)
+  {
+    ObjectCommand toc(QString("set_color"));
+    toc.setValue(QString("color"), c);
+    _color->message(&toc);
+  }
+  
   _date->setDateTime(date);
 
   int pos = _plot->findText(po);
@@ -121,9 +135,16 @@ MarkerVLineDialog::setSettings (QColor color, QDateTime date, QString po)
 }
 
 void
-MarkerVLineDialog::settings (QColor &color, QDateTime &date, QString &po)
+MarkerVLineDialog::settings (QColor &c, QDateTime &date, QString &po)
 {
-  color = _color->color();
+  if (_color)
+  {
+    QString key("color");
+    ObjectCommand toc(key);
+    if (_color->message(&toc))
+      c = toc.getColor(key);
+  }
+  
   date = _date->dateTime();
   po = _plot->currentText();
 }

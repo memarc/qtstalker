@@ -24,7 +24,7 @@
 
 #include <QtGui>
 
-#include "ColorButton.h"
+#include "Object.h"
 #include "Dialog.h"
 
 class MarkerTLineDialog : public Dialog
@@ -48,7 +48,7 @@ class MarkerTLineDialog : public Dialog
     QDoubleSpinBox *_endPrice;
     QDateTimeEdit *_startDate;
     QDateTimeEdit *_endDate;
-    ColorButton *_color;
+    Object *_color;
     QCheckBox *_extend;
     QComboBox *_plot;
 };

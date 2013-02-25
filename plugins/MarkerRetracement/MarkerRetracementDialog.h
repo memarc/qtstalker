@@ -24,7 +24,7 @@
 
 #include <QtGui>
 
-#include "ColorButton.h"
+#include "Object.h"
 #include "Dialog.h"
 
 class MarkerRetracementDialog : public Dialog
@@ -53,7 +53,7 @@ class MarkerRetracementDialog : public Dialog
     QDoubleSpinBox *_level3;
     QDateTimeEdit *_startDate;
     QDateTimeEdit *_endDate;
-    ColorButton *_color;
+    Object *_color;
     QCheckBox *_extend;
     QComboBox *_plot;
 };

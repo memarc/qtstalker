@@ -3,7 +3,6 @@ CONFIG += plugin
 MOC_DIR += build
 OBJECTS_DIR += build
 INCLUDEPATH += ../../src
-QMAKE_CXXFLAGS += -fPIC -O2
 
 
 HEADERS += DateRangeButton.h

@@ -25,7 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class STOCHSDialog : public Dialog
 {
@@ -46,7 +46,7 @@ class STOCHSDialog : public Dialog
   protected:
     QComboBox *_ktype;
     QComboBox *_dtype;
-    InputObjectWidget *_input;
+    Object *_input;
     QSpinBox *_period;
     QSpinBox *_kperiod;
     QSpinBox *_dperiod;

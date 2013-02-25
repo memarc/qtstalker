@@ -5,20 +5,18 @@ OBJECTS_DIR += build
 INCLUDEPATH += ../../src
 
 
-HEADERS += STOCHS.h
-SOURCES += STOCHS.cpp
-HEADERS += STOCHSObject.h
-SOURCES += STOCHSObject.cpp
-HEADERS += STOCHSDialog.h
-SOURCES += STOCHSDialog.cpp
+HEADERS += IndicatorInput.h
+SOURCES += IndicatorInput.cpp
+HEADERS += IndicatorInputObject.h
+SOURCES += IndicatorInputObject.cpp
+HEADERS += IndicatorInputWidget.h
+SOURCES += IndicatorInputWidget.cpp
 HEADERS += ../../src/Object.h
 HEADERS += ../../src/Util.h
 HEADERS += ../../src/Plugin.h
 HEADERS += ../../src/PluginCommand.h
 HEADERS += ../../src/ObjectCommand.h
-HEADERS += ../../src/Dialog.h
 
-OBJECTS += ../../src/build/Dialog.o
 OBJECTS += ../../src/build/Object.o
 OBJECTS += ../../src/build/ObjectCommand.o
 OBJECTS += ../../src/build/Util.o

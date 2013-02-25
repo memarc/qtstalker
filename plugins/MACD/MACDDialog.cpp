@@ -28,6 +28,9 @@ MACDDialog::MACDDialog (QHash<QString, void *> objects, QString name) : Dialog (
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("MACD") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
+
+  Util util;
+  _input = util.object(QString("IndicatorInput"), QString(), QString("input"));
   
   createTab(objects);
   loadSettings();
@@ -36,6 +39,9 @@ MACDDialog::MACDDialog (QHash<QString, void *> objects, QString name) : Dialog (
 MACDDialog::~MACDDialog ()
 {
   saveSettings();
+  
+  if (_input)
+    delete _input;
 }
 
 void
@@ -59,10 +65,17 @@ MACDDialog::createTab (QHash<QString, void *> l)
   w->setLayout(form);
 
   // input
-  _input = new InputObjectWidget;
-  _input->setObjects(ol);
-  connect(_input, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Input"), _input);
+  if (_input)
+  {
+    QWidget *w = _input->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(ol);
+    _input->message(&toc);
+    
+    connect(_input, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Input"), w);
+  }
   
   // fast ma type
   QStringList tl;
@@ -139,8 +152,18 @@ MACDDialog::saveSettings()
 void
 MACDDialog::setSettings (QString io, QString ik, int fp, QString fma, int sp, QString sma, int sigp, QString sigma)
 {
-  _input->setInput(io);
-  _input->setKey(tr("Input"), ik);
+  if (_input)
+  {
+    ObjectCommand toc(QString("set_input"));
+    toc.setValue(QString("input"), io);
+    _input->message(&toc);
+
+    toc.setCommand(QString("set_key"));
+    toc.setValue(QString("key"), tr("Input"));
+    toc.setValue(QString("data"), ik);
+    _input->message(&toc);
+  }
+  
   _fastPeriod->setValue(fp);
   _fastMAType->setCurrentIndex(_fastMAType->findText(fma));
   _slowPeriod->setValue(sp);
@@ -152,8 +175,18 @@ MACDDialog::setSettings (QString io, QString ik, int fp, QString fma, int sp, QS
 void
 MACDDialog::settings (QString &io, QString &ik, int &fp, QString &fma, int &sp, QString &sma, int &sigp, QString &sigma)
 {
-  io = _input->input();
-  ik = _input->key(tr("Input"));
+  if (_input)
+  {
+    ObjectCommand toc(QString("input"));
+    _input->message(&toc);
+    io = toc.getString(QString("input"));
+
+    toc.setCommand(QString("key"));
+    toc.setValue(QString("key"), tr("Input"));
+    _input->message(&toc);
+    ik = toc.getString(QString("data"));
+  }
+
   fma = _fastMAType->currentText();
   fp = _fastPeriod->value();
   sma = _slowMAType->currentText();
@@ -161,4 +194,3 @@ MACDDialog::settings (QString &io, QString &ik, int &fp, QString &fma, int &sp, 
   sigma = _signalMAType->currentText();
   sigp = _signalPeriod->value();
 }
-

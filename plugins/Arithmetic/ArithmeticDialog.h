@@ -25,7 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class ArithmeticDialog : public Dialog
 {
@@ -45,8 +45,8 @@ class ArithmeticDialog : public Dialog
   
   protected:
     QComboBox *_op;
-    InputObjectWidget *_input;
-    InputObjectWidget *_input2;
+    Object *_input;
+    Object *_input2;
 };
 
 #endif

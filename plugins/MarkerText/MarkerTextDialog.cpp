@@ -20,7 +20,7 @@
  */
 
 #include "MarkerTextDialog.h"
-#include "Object.h"
+#include "Util.h"
 
 #include <QDebug>
 
@@ -34,6 +34,10 @@ MarkerTextDialog::MarkerTextDialog (QHash<QString, void *> l, QString name) : Di
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("MarkerText") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
+
+  Util util;
+  _color = util.object(QString("ColorButton"), QString(), QString("color"));
+  _font = util.object(QString("FontButton"), QString(), QString("font"));
   
   createTab(l);
   loadSettings();
@@ -42,6 +46,12 @@ MarkerTextDialog::MarkerTextDialog (QHash<QString, void *> l, QString name) : Di
 MarkerTextDialog::~MarkerTextDialog ()
 {
   saveSettings();
+  
+  if (_color)
+    delete _color;
+  
+  if (_font)
+    delete _font;
 }
 
 void
@@ -72,17 +82,20 @@ MarkerTextDialog::createTab (QHash<QString, void *> l)
     _plot->addItems(tl);
     form->addRow(tr("Plot"), _plot);
   }
-
+  
   // color
-  _color = new ColorButton(this, QColor(Qt::red));
-  connect(_color, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Color"), _color);
+  if (_color)
+  {
+    connect(_color, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Color"), _color->widget());
+  }
 
   // font
-  QFont f;
-  _font = new FontButton(this, f);
-  connect(_font, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Font"), _font);
+  if (_font)
+  {
+    connect(_font, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Font"), _font->widget());
+  }
   
   // date
   _date = new QDateTimeEdit;
@@ -128,11 +141,23 @@ MarkerTextDialog::saveSettings ()
 void
 MarkerTextDialog::setSettings (QColor c, QDateTime d, double p, QString t, QFont f, QString po)
 {
-  _color->setColor(c);
+  if (_color)
+  {
+    ObjectCommand toc(QString("set_color"));
+    toc.setValue(QString("color"), c);
+    _color->message(&toc);
+  }
+  
+  if (_font)
+  {
+    ObjectCommand toc(QString("set_font"));
+    toc.setValue(QString("font"), f);
+    _font->message(&toc);
+  }
+  
   _date->setDateTime(d);
   _price->setValue(p);
   _text->setText(t);
-  _font->setFont(f);
 
   int pos = _plot->findText(po);
   if (pos == -1)
@@ -143,10 +168,24 @@ MarkerTextDialog::setSettings (QColor c, QDateTime d, double p, QString t, QFont
 void
 MarkerTextDialog::settings (QColor &c, QDateTime &d, double &p, QString &t, QFont &f, QString &po)
 {
-  c = _color->color();
+  if (_color)
+  {
+    QString key("color");
+    ObjectCommand toc(key);
+    if (_color->message(&toc))
+      c = toc.getColor(key);
+  }
+  
+  if (_font)
+  {
+    QString key("font");
+    ObjectCommand toc(key);
+    if (_font->message(&toc))
+      f = toc.getFont(key);
+  }
+  
   d = _date->dateTime();
   p = _price->value();
   t = _text->text();
-  f = _font->font();
   po = _plot->currentText();
 }

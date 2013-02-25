@@ -24,8 +24,7 @@
 
 #include <QtGui>
 
-#include "ObjectCommand.h"
-#include "FileButton.h"
+#include "Object.h"
 
 class YahooHistoryWidget : public QWidget
 {
@@ -58,7 +57,7 @@ class YahooHistoryWidget : public QWidget
     void threadMessage (ObjectCommand);
     
   private:
-    FileButton *_symbolButton;
+    Object *_symbolButton;
     QTextEdit *_log;
     QString _helpFile;
     QDateTimeEdit *_startDate;

@@ -25,7 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class MADialog : public Dialog
 {
@@ -45,7 +45,7 @@ class MADialog : public Dialog
   
   protected:
     QComboBox *_type;
-    InputObjectWidget *_input;
+    Object *_input;
     QSpinBox *_period;
 };
 

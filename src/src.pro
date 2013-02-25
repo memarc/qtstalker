@@ -2,16 +2,10 @@
 # FILES
 #####################################################
 
-HEADERS += ColorButton.h
-SOURCES += ColorButton.cpp
 HEADERS += Dialog.h
 SOURCES += Dialog.cpp
-HEADERS += FileButton.h
-SOURCES += FileButton.cpp
-HEADERS += FontButton.h
-SOURCES += FontButton.cpp
-HEADERS += InputObjectWidget.h
-SOURCES += InputObjectWidget.cpp
+#HEADERS += InputObjectWidget.h
+#SOURCES += InputObjectWidget.cpp
 SOURCES += main.cpp
 HEADERS += Object.h
 SOURCES += Object.cpp

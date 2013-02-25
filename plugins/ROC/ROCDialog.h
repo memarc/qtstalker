@@ -25,7 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class ROCDialog : public Dialog
 {
@@ -45,7 +45,7 @@ class ROCDialog : public Dialog
   
   protected:
     QComboBox *_method;
-    InputObjectWidget *_input;
+    Object *_input;
     QSpinBox *_period;
 };
 

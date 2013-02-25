@@ -20,7 +20,7 @@
  */
 
 #include "MarkerBuyDialog.h"
-#include "Object.h"
+#include "Util.h"
 
 #include <QDebug>
 
@@ -34,6 +34,9 @@ MarkerBuyDialog::MarkerBuyDialog (QHash<QString, void *> l, QString) : Dialog (0
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("MarkerBuy") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
+
+  Util util;
+  _color = util.object(QString("ColorButton"), QString(), QString("color"));
   
   createTab(l);
   loadSettings();
@@ -42,6 +45,9 @@ MarkerBuyDialog::MarkerBuyDialog (QHash<QString, void *> l, QString) : Dialog (0
 MarkerBuyDialog::~MarkerBuyDialog ()
 {
   saveSettings();
+  
+  if (_color)
+    delete _color;
 }
 
 void
@@ -72,11 +78,13 @@ MarkerBuyDialog::createTab (QHash<QString, void *> l)
     _plot->addItems(tl);
     form->addRow(tr("Plot"), _plot);
   }
-
+  
   // color
-  _color = new ColorButton(this, QColor(Qt::red));
-  connect(_color, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Color"), _color);
+  if (_color)
+  {
+    connect(_color, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Color"), _color->widget());
+  }
   
   // date
   _date = new QDateTimeEdit;
@@ -116,9 +124,15 @@ MarkerBuyDialog::saveSettings ()
 }
 
 void
-MarkerBuyDialog::setSettings (QColor color, QDateTime date, double price, QString po)
+MarkerBuyDialog::setSettings (QColor c, QDateTime date, double price, QString po)
 {
-  _color->setColor(color);
+  if (_color)
+  {
+    ObjectCommand toc(QString("set_color"));
+    toc.setValue(QString("color"), c);
+    _color->message(&toc);
+  }
+  
   _date->setDateTime(date);
   _price->setValue(price);
 
@@ -129,9 +143,16 @@ MarkerBuyDialog::setSettings (QColor color, QDateTime date, double price, QStrin
 }
 
 void
-MarkerBuyDialog::settings (QColor &color, QDateTime &date, double &price, QString &po)
+MarkerBuyDialog::settings (QColor &c, QDateTime &date, double &price, QString &po)
 {
-  color = _color->color();
+  if (_color)
+  {
+    QString key("color");
+    ObjectCommand toc(key);
+    if (_color->message(&toc))
+      c = toc.getColor(key);
+  }
+  
   date = _date->dateTime();
   price = _price->value();
   po = _plot->currentText();
