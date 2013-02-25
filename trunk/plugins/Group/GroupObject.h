@@ -45,12 +45,13 @@ class GroupObject : public Object
     
   public slots:    
     int message (ObjectCommand *);
-    void dialogDone (void *);
+    void dialogMessage (ObjectCommand);
     
   private:
+    Object *_dialog;
     QStringList _commandList;
     QString _file;
-    QHash<QString, Data> _symbols;
+    QStringList _symbols;
 };
 
 #endif

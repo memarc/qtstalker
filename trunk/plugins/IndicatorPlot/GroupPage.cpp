@@ -242,6 +242,10 @@ GroupPage::loadGroups ()
     delete o;
   
   QStringList groups = toc.getList(key);
+
+  Object *db = util.object(QString("Symbol"), QString(), QString());
+  if (! db)
+    return;
   
   for (int pos = 0; pos < groups.size(); pos++)
   {
@@ -261,6 +265,12 @@ GroupPage::loadGroups ()
       continue;
     }
 
+    QStringList tl = toc.getList(QString("symbols"));
+    
+    toc.setCommand(QString("info"));
+    toc.setValue(QString("names"), tl);
+    db->message(&toc);
+    
     QHashIterator<QString, Data> it(toc.getDatas());
     while (it.hasNext())
     {
@@ -276,6 +286,8 @@ GroupPage::loadGroups ()
     _groups.insert(groups.at(pos), group);
   }
 
+  delete db;
+  
   selectionChanged();
 }
 
@@ -342,17 +354,29 @@ GroupPage::groupObjectMessage (ObjectCommand oc)
   
   p->takeChildren();
   
-  QHashIterator<QString, Data> it(oc.getDatas());
+  QStringList sl = oc.getList(QString("symbols"));
+  
+  Util util;
+  Object *db = util.object(QString("Symbol"), QString(), QString());
+  if (! db)
+    return;
+  
+  ObjectCommand toc(QString("info"));
+  toc.setValue(QString("names"), sl);
+  db->message(&toc);
+  
+  QHashIterator<QString, Data> it(toc.getDatas());
   while (it.hasNext())
   {
     it.next();
     Data d = it.value();
-    
+  
     QTreeWidgetItem *i = new QTreeWidgetItem(p);
     i->setText(1, it.key());
     i->setToolTip(1, d.value(QString("name")).toString());
   }
   
+  delete db;
+  
   selectionChanged();
 }
-
