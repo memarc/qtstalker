@@ -46,9 +46,10 @@ class SymbolSelectDialog : public Dialog
     void createActions ();
     void createTab ();
     void loadExchanges ();
-    void setSettings (QString exchange, QString ticker, QString type, QString name);
-    void settings (QHash<QString, Data> &, QString &exchange, QString &ticker, QString &type, QString &name);
+    void setSettings (QStringList symbols, QString exchange, QString ticker, QString type, QString name);
+    void settings (QStringList &symbols, QString &exchange, QString &ticker, QString &type, QString &name);
     void setSearchList (QStringList);
+    void setSymbolList (QStringList);
 
   public slots:
     void done ();

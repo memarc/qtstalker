@@ -35,7 +35,7 @@ SymbolSelectDialog::SymbolSelectDialog (QString name) : Dialog (0, name)
 {
   QStringList tl;
   QDir dir(QDir::homePath());
-  tl << dir.absolutePath() << QString("OTA") << QString("Symbol") << QString("settings") << QString("select_dialog");
+  tl << dir.absolutePath() << QString("OTA") << QString("SymbolSelect") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
   
   Util util;
@@ -64,6 +64,7 @@ SymbolSelectDialog::SymbolSelectDialog (QString name) : Dialog (0, name)
 SymbolSelectDialog::~SymbolSelectDialog ()
 {
   saveSettings();
+  
   if (_symbolObject)
     delete _symbolObject;
 }
@@ -314,7 +315,8 @@ SymbolSelectDialog::loadExchanges ()
 }
 
 void
-SymbolSelectDialog::setSettings (QString exchange, QString ticker, QString type, QString name)
+SymbolSelectDialog::setSettings (QStringList symbols, QString exchange, QString ticker,
+                                 QString type, QString name)
 {
   if (! exchange.isEmpty())
     _exchanges->setCurrentIndex(_exchanges->findText(exchange));
@@ -328,21 +330,21 @@ SymbolSelectDialog::setSettings (QString exchange, QString ticker, QString type,
   if (! name.isEmpty())
     _symbolName->setText(name);
   
-//  setModified(FALSE);
+  setSymbolList(symbols);
+  
+  setModified(FALSE);
 }
 
 void
-SymbolSelectDialog::settings (QHash<QString, Data> &d, QString &exchange, QString &ticker, QString &type, QString &name)
+SymbolSelectDialog::settings (QStringList &symbols, QString &exchange, QString &ticker,
+                              QString &type, QString &name)
 {
-  d.clear();
+  symbols.clear();
   
   for (int pos = 0; pos < _symbolList->topLevelItemCount(); pos++)
   {
     QTreeWidgetItem *i = _symbolList->topLevelItem(pos);
-    
-    Data symbol;
-    symbol.insert(QString("name"), i->text(1));
-    d.insert(i->text(0), symbol);
+    symbols << i->text(0);
   }
   
   exchange = _exchanges->currentText();
@@ -383,6 +385,37 @@ SymbolSelectDialog::setSearchList (QStringList l)
 }
 
 void
+SymbolSelectDialog::setSymbolList (QStringList l)
+{
+  if (! _symbolObject)
+    return;
+
+  ObjectCommand toc(QString("info"));
+  toc.setValue(QString("names"), l);
+  if (! _symbolObject->message(&toc))
+  {
+    qDebug() << "SymbolSelectDialog::setSymbolList: message error" << _symbolObject->plugin() << toc.command();
+    return;
+  }
+  
+  _symbolList->clear();
+
+  QHashIterator<QString, Data> it(toc.getDatas());
+  while (it.hasNext())
+  {
+    it.next();
+    Data d = it.value();
+    
+    QTreeWidgetItem *item = new QTreeWidgetItem(_symbolList);
+    item->setText(0, it.key());
+    item->setText(1, d.value(QString("name")).toString());
+  }
+  
+  for (int pos = 0; pos < _symbolList->columnCount(); pos++)
+    _symbolList->resizeColumnToContents(pos);
+}
+
+void
 SymbolSelectDialog::loadSettings ()
 {
   QSettings settings(_settingsPath, QSettings::NativeFormat);
@@ -395,4 +428,3 @@ SymbolSelectDialog::saveSettings()
   QSettings settings(_settingsPath, QSettings::NativeFormat);
   Dialog::saveSettings(settings);
 }
-
