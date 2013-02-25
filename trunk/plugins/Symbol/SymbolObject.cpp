@@ -22,7 +22,6 @@
 #include <QtDebug>
 
 #include "SymbolObject.h"
-#include "SymbolSelectDialog.h"
 #include "Util.h"
 
 
@@ -48,7 +47,6 @@ SymbolObject::SymbolObject (QString profile, QString name)
   _commands << QString("output_keys");
   _commands << QString("info");
   _commands << QString("exchanges");
-  _commands << QString("search_dialog");
   
   _lengths << "1M";
   _lengths << "5M";
@@ -141,9 +139,6 @@ SymbolObject::message (ObjectCommand *oc)
       break;
     case 13:
       rc = exchanges(oc);
-      break;
-    case 14:
-      rc = searchDialog(oc);
       break;
     default:
       break;
@@ -533,36 +528,6 @@ SymbolObject::info (ObjectCommand *oc)
   }
   
   return 1;
-}
-
-int
-SymbolObject::searchDialog (ObjectCommand *oc)
-{
-  SymbolSelectDialog *dialog = new SymbolSelectDialog(_name);
-  dialog->setSettings(oc->getString(QString("exchange")),
-		      oc->getString(QString("ticker")),
-		      oc->getString(QString("type")),
-		      oc->getString(QString("name")));
-  connect(dialog, SIGNAL(signalDone(void *)), this, SLOT(searchDialogDone(void *)));
-  dialog->show();
-  return 1;
-}
-
-void
-SymbolObject::searchDialogDone (void *dialog)
-{
-  SymbolSelectDialog *d = (SymbolSelectDialog *) dialog;
-  QHash<QString, Data> symbols;
-  QString exchange, ticker, type, name;
-  d->settings(symbols, exchange, ticker, type, name);
-  
-  ObjectCommand oc(QString("search"));
-  oc.setValue(QString("exchange"), exchange);
-  oc.setValue(QString("ticker"), ticker);
-  oc.setValue(QString("type"), type);
-  oc.setValue(QString("name"), name);
-  oc.setDatas(symbols);
-  emit signalMessage(oc);
 }
 
 int

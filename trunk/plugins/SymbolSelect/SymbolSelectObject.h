@@ -19,59 +19,39 @@
  *  USA.
  */
 
-#ifndef PLUGIN_SYMBOL_OBJECT_HPP
-#define PLUGIN_SYMBOL_OBJECT_HPP
+#ifndef PLUGIN_SYMBOL_SELECT_OBJECT_HPP
+#define PLUGIN_SYMBOL_SELECT_OBJECT_HPP
 
 #include <QStringList>
-#include <QDateTime>
-#include <QMap>
 
 #include "Object.h"
-#include "Data.h"
-#include "SymbolDialog.h"
 
 
-class SymbolObject : public Object
+class SymbolSelectObject : public Object
 {
   Q_OBJECT
 
   public:
-    SymbolObject (QString profile, QString name);
-    ~SymbolObject ();
-    int loadBars (ObjectCommand *);
-    int saveBars (ObjectCommand *);
-    int values (ObjectCommand *);
-    int search (ObjectCommand *);
-    int size (ObjectCommand *);
+    SymbolSelectObject (QString profile, QString name);
+    ~SymbolSelectObject ();
     int dialog (ObjectCommand *);
-    int symbol (ObjectCommand *);
     int load (ObjectCommand *);
     int save (ObjectCommand *);
-    int copy (ObjectCommand *);
-    int outputKeys (ObjectCommand *);
-    int info (ObjectCommand *);
-    int exchanges (ObjectCommand *);
+    int setSettings (ObjectCommand *);
+    int settings (ObjectCommand *);
     
-    int getBars (QDateTime &startDate, QDateTime &endDate, QString table, QString length);
-    int getInterval (QString &length, int interval, QDateTime &sd, QDateTime &ed);
-    int getInfo (QString symbol, Data &);
-    int setInfo (Data &);
-    
-  public slots:
+  public slots:    
     int message (ObjectCommand *);
+    void symbolsChanged ();
     void dialogDone (void *);
     
   private:
-    QStringList _commands;
-    QStringList _lengths;
-    QMap<int, Data *> _bars;
-    QString _path;
-    QString _file;
+    QStringList _commandList;
     QString _exchange;
     QString _ticker;
-    Data _info;
-    int _interval;
-    Object *_db;
+    QString _corpType;
+    QString _corp;
+    QStringList _symbols;
 };
 
 #endif

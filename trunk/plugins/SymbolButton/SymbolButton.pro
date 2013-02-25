@@ -5,20 +5,18 @@ OBJECTS_DIR += build
 INCLUDEPATH += ../../src
 
 
-HEADERS += Symbol.h
-SOURCES += Symbol.cpp
-HEADERS += SymbolDialog.h
-SOURCES += SymbolDialog.cpp
-HEADERS += SymbolObject.h
-SOURCES += SymbolObject.cpp
+HEADERS += SymbolButton.h
+SOURCES += SymbolButton.cpp
+HEADERS += SymbolButtonObject.h
+SOURCES += SymbolButtonObject.cpp
+HEADERS += SymbolButtonWidget.h
+SOURCES += SymbolButtonWidget.cpp
 HEADERS += ../../src/Object.h
 HEADERS += ../../src/Util.h
+HEADERS += ../../src/Plugin.h
 HEADERS += ../../src/PluginCommand.h
 HEADERS += ../../src/ObjectCommand.h
-HEADERS += ../../src/Plugin.h
-HEADERS += ../../src/Dialog.h
 
-OBJECTS += ../../src/build/Dialog.o
 OBJECTS += ../../src/build/Object.o
 OBJECTS += ../../src/build/ObjectCommand.o
 OBJECTS += ../../src/build/Util.o
