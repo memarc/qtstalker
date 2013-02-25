@@ -21,7 +21,6 @@
 
 #include "CurveCloudDialog.h"
 #include "Util.h"
-#include "Object.h"
 
 
 CurveCloudDialog::CurveCloudDialog (QHash<QString, void *> l, QString name) : Dialog (0, name)
@@ -31,6 +30,12 @@ CurveCloudDialog::CurveCloudDialog (QHash<QString, void *> l, QString name) : Di
   tl << dir.absolutePath() << QString("OTA") << QString("CurveCloud") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
 
+  Util util;
+  _color = util.object(QString("ColorButton"), QString(), QString("color"));
+
+  _base = util.object(QString("IndicatorInput"), QString(), QString("base"));
+  _value = util.object(QString("IndicatorInput"), QString(), QString("value"));
+
   createPlotTab(l);
   loadSettings();
 }
@@ -38,6 +43,13 @@ CurveCloudDialog::CurveCloudDialog (QHash<QString, void *> l, QString name) : Di
 CurveCloudDialog::~CurveCloudDialog ()
 {
   saveSettings();
+  
+  if (_color)
+    delete _color;
+  if (_base)
+    delete _base;
+  if (_value)
+    delete _value;
 }
 
 void
@@ -71,20 +83,38 @@ CurveCloudDialog::createPlotTab (QHash<QString, void *> l)
   connect(_plot, SIGNAL(currentIndexChanged(int)), this, SLOT(modified()));
   form->addRow(tr("Plot"), _plot);
 
-  _base = new InputObjectWidget;
-  _base->setObjects(tobjects);
-  connect(_base, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Low Input"), _base);
-
-  _value = new InputObjectWidget;
-  _value->setObjects(tobjects);
-  connect(_value, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("High Input"), _value);
+  // base
+  if (_base)
+  {
+    QWidget *w = _base->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(tobjects);
+    _base->message(&toc);
+    
+    connect(_base, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Low Input"), w);
+  }
   
+  // value
+  if (_value)
+  {
+    QWidget *w = _value->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(tobjects);
+    _value->message(&toc);
+    
+    connect(_value, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("High Input"), w);
+  }
+
   // color
-  _color = new ColorButton(0, QColor(Qt::red));
-  connect(_color, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Color"), _color);
+  if (_color)
+  {
+    connect(_color, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Color"), _color->widget());
+  }
   
   // label
   _label = new QLineEdit;
@@ -118,12 +148,38 @@ CurveCloudDialog::saveSettings()
 void
 CurveCloudDialog::setSettings (QColor c, QString l, QString bi, QString bk, QString vi, QString vk, QString po)
 {
-  _color->setColor(c);
+  if (_color)
+  {
+    ObjectCommand toc(QString("set_color"));
+    toc.setValue(QString("color"), c);
+    _color->message(&toc);
+  }
+  
+  if (_base)
+  {
+    ObjectCommand toc(QString("set_input"));
+    toc.setValue(QString("input"), bi);
+    _base->message(&toc);
+
+    toc.setCommand(QString("set_key"));
+    toc.setValue(QString("key"), tr("Low"));
+    toc.setValue(QString("data"), bk);
+    _base->message(&toc);
+  }
+  
+  if (_value)
+  {
+    ObjectCommand toc(QString("set_input"));
+    toc.setValue(QString("input"), vi);
+    _value->message(&toc);
+
+    toc.setCommand(QString("set_key"));
+    toc.setValue(QString("key"), tr("High"));
+    toc.setValue(QString("data"), vk);
+    _value->message(&toc);
+  }
+  
   _label->setText(l);
-  _base->setInput(bi);
-  _base->setKey(tr("Low"), bk);
-  _value->setInput(vi);
-  _value->setKey(tr("High"), vk);
   
   if (! po.isEmpty())
     _plot->setCurrentIndex(_plot->findText(po));
@@ -132,11 +188,38 @@ CurveCloudDialog::setSettings (QColor c, QString l, QString bi, QString bk, QStr
 void
 CurveCloudDialog::settings (QColor &c, QString &l, QString &bi, QString &bk, QString &vi, QString &vk, QString &po)
 {
-  c = _color->color();
+  if (_color)
+  {
+    QString key("color");
+    ObjectCommand toc(key);
+    if (_color->message(&toc))
+      c = toc.getColor(key);
+  }
+
+  if (_base)
+  {
+    ObjectCommand toc(QString("input"));
+    _base->message(&toc);
+    bi = toc.getString(QString("input"));
+
+    toc.setCommand(QString("key"));
+    toc.setValue(QString("key"), tr("Low"));
+    _base->message(&toc);
+    bk = toc.getString(QString("data"));
+  }
+
+  if (_value)
+  {
+    ObjectCommand toc(QString("input"));
+    _value->message(&toc);
+    vi = toc.getString(QString("input"));
+
+    toc.setCommand(QString("key"));
+    toc.setValue(QString("key"), tr("Low"));
+    _value->message(&toc);
+    vk = toc.getString(QString("data"));
+  }
+  
   l = _label->text();
-  bi = _base->input();
-  bk = _base->key(tr("Low"));
-  vi = _value->input();
-  vk = _value->key(tr("High"));
   po = _plot->currentText();
 }

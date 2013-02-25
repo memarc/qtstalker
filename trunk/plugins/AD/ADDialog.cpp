@@ -28,6 +28,9 @@ ADDialog::ADDialog (QHash<QString, void *> objects, QString name) : Dialog (0, n
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("AD") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
+
+  Util util;
+  _input = util.object(QString("IndicatorInput"), QString(), QString("input"));
   
   createTab(objects);
   loadSettings();
@@ -36,6 +39,9 @@ ADDialog::ADDialog (QHash<QString, void *> objects, QString name) : Dialog (0, n
 ADDialog::~ADDialog ()
 {
   saveSettings();
+  
+  if (_input)
+    delete _input;
 }
 
 void
@@ -59,11 +65,19 @@ ADDialog::createTab (QHash<QString, void *> l)
   form->setMargin(10);
   w->setLayout(form);
 
-  _input = new InputObjectWidget;
-  _input->setObjects(ol);
-  connect(_input, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Input"), _input);
-
+  // input
+  if (_input)
+  {
+    QWidget *w = _input->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(ol);
+    _input->message(&toc);
+    
+    connect(_input, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Input"), w);
+  }
+  
   _tabs->addTab(w, tr("Settings"));
 }
 
@@ -91,20 +105,55 @@ ADDialog::saveSettings()
 void
 ADDialog::setSettings (QString io, QString hk, QString lk, QString ck, QString vk)
 {
-  _input->setInput(io);
-  _input->setKey(tr("High"), hk);
-  _input->setKey(tr("Low"), lk);
-  _input->setKey(tr("Close"), ck);
-  _input->setKey(tr("Volume"), vk);
+  if (! _input)
+    return;
+  
+  ObjectCommand toc(QString("set_input"));
+  toc.setValue(QString("input"), io);
+  _input->message(&toc);
+
+  toc.setCommand(QString("set_key"));
+  toc.setValue(QString("key"), tr("High"));
+  toc.setValue(QString("data"), hk);
+  _input->message(&toc);
+  
+  toc.setValue(QString("key"), tr("Low"));
+  toc.setValue(QString("data"), lk);
+  _input->message(&toc);
+  
+  toc.setValue(QString("key"), tr("Close"));
+  toc.setValue(QString("data"), ck);
+  _input->message(&toc);
+  
+  toc.setValue(QString("key"), tr("Volume"));
+  toc.setValue(QString("data"), vk);
+  _input->message(&toc);
 }
 
 void
 ADDialog::settings (QString &io, QString &hk, QString &lk, QString &ck, QString &vk)
 {
-  io = _input->input();
-  hk = _input->key(tr("High"));
-  lk = _input->key(tr("Low"));
-  ck = _input->key(tr("Close"));
-  vk = _input->key(tr("Volume"));
-}
+  if (! _input)
+    return;
+  
+  ObjectCommand toc(QString("input"));
+  _input->message(&toc);
+  io = toc.getString(QString("input"));
 
+  toc.setCommand(QString("key"));
+  toc.setValue(QString("key"), tr("High"));
+  _input->message(&toc);
+  hk = toc.getString(QString("data"));
+
+  toc.setValue(QString("key"), tr("Low"));
+  _input->message(&toc);
+  lk = toc.getString(QString("data"));
+
+  toc.setValue(QString("key"), tr("Close"));
+  _input->message(&toc);
+  ck = toc.getString(QString("data"));
+
+  toc.setValue(QString("key"), tr("Volume"));
+  _input->message(&toc);
+  vk = toc.getString(QString("data"));
+}

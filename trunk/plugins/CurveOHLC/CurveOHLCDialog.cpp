@@ -21,7 +21,6 @@
 
 #include "CurveOHLCDialog.h"
 #include "Util.h"
-#include "Object.h"
 
 
 CurveOHLCDialog::CurveOHLCDialog (QHash<QString, void *> l, QString name) : Dialog (0, name)
@@ -31,6 +30,11 @@ CurveOHLCDialog::CurveOHLCDialog (QHash<QString, void *> l, QString name) : Dial
   tl << dir.absolutePath() << QString("OTA") << QString("CurveOHLC") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
 
+  Util util;
+  _color = util.object(QString("ColorButton"), QString(), QString("color"));
+
+  _input = util.object(QString("IndicatorInput"), QString(), QString("input"));
+
   createTab(l);
   loadSettings();
 }
@@ -38,6 +42,11 @@ CurveOHLCDialog::CurveOHLCDialog (QHash<QString, void *> l, QString name) : Dial
 CurveOHLCDialog::~CurveOHLCDialog ()
 {
   saveSettings();
+  
+  if (_color)
+    delete _color;
+  if (_input)
+    delete _input;
 }
 
 void
@@ -65,10 +74,18 @@ CurveOHLCDialog::createTab (QHash<QString, void *> l)
   form->setMargin(10);
   w->setLayout(form);
   
-  _input = new InputObjectWidget;
-  _input->setObjects(ol);
-  connect(_input, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Input"), _input);
+  // input
+  if (_input)
+  {
+    QWidget *w = _input->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(ol);
+    _input->message(&toc);
+    
+    connect(_input, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Input"), w);
+  }
 
   // plot
   _plot = new QComboBox;
@@ -77,9 +94,11 @@ CurveOHLCDialog::createTab (QHash<QString, void *> l)
   form->addRow(tr("Plot"), _plot);
   
   // color
-  _color = new ColorButton(0, QColor(Qt::red));
-  connect(_color, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Color"), _color);
+  if (_color)
+  {
+    connect(_color, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Color"), _color->widget());
+  }
   
   // label
   _label = new QLineEdit;
@@ -114,14 +133,38 @@ void
 CurveOHLCDialog::setSettings (QColor c, QString l, QString i, QString ok,
 			      QString hk, QString lk, QString ck, QString po)
 {
-  _color->setColor(c);
-  _label->setText(l);
+  if (_color)
+  {
+    ObjectCommand toc(QString("set_color"));
+    toc.setValue(QString("color"), c);
+    _color->message(&toc);
+  }
   
-  _input->setInput(i);
-  _input->setKey(tr("Open"), ok);
-  _input->setKey(tr("High"), hk);
-  _input->setKey(tr("Low"), lk);
-  _input->setKey(tr("Close"), ck);
+  if (_input)
+  {
+    ObjectCommand toc(QString("set_input"));
+    toc.setValue(QString("input"), i);
+    _input->message(&toc);
+
+    toc.setCommand(QString("set_key"));
+    toc.setValue(QString("key"), tr("Open"));
+    toc.setValue(QString("data"), ok);
+    _input->message(&toc);
+
+    toc.setValue(QString("key"), tr("High"));
+    toc.setValue(QString("data"), hk);
+    _input->message(&toc);
+  
+    toc.setValue(QString("key"), tr("Low"));
+    toc.setValue(QString("data"), lk);
+    _input->message(&toc);
+  
+    toc.setValue(QString("key"), tr("Close"));
+    toc.setValue(QString("data"), ck);
+    _input->message(&toc);
+  }
+  
+  _label->setText(l);
   
   if (! po.isEmpty())
     _plot->setCurrentIndex(_plot->findText(po));
@@ -131,12 +174,39 @@ void
 CurveOHLCDialog::settings (QColor &c, QString &l, QString &i, QString &ok,
 			   QString &hk, QString &lk, QString &ck, QString &po)
 {
-  c = _color->color();
+  if (_color)
+  {
+    QString key("color");
+    ObjectCommand toc(key);
+    if (_color->message(&toc))
+      c = toc.getColor(key);
+  }
+  
+  if (_input)
+  {
+    ObjectCommand toc(QString("input"));
+    _input->message(&toc);
+    i = toc.getString(QString("input"));
+
+    toc.setCommand(QString("key"));
+    toc.setValue(QString("key"), tr("Open"));
+    _input->message(&toc);
+    ok = toc.getString(QString("data"));
+
+    toc.setCommand(QString("key"));
+    toc.setValue(QString("key"), tr("High"));
+    _input->message(&toc);
+    hk = toc.getString(QString("data"));
+
+    toc.setValue(QString("key"), tr("Low"));
+    _input->message(&toc);
+    lk = toc.getString(QString("data"));
+
+    toc.setValue(QString("key"), tr("Close"));
+    _input->message(&toc);
+    ck = toc.getString(QString("data"));
+  }
+  
   l = _label->text();
-  i = _input->input();
-  ok = _input->key(tr("Open"));
-  hk = _input->key(tr("High"));
-  lk = _input->key(tr("Low"));
-  ck = _input->key(tr("Close"));
   po = _plot->currentText();
 }

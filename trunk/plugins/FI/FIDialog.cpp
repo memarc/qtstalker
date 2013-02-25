@@ -28,6 +28,9 @@ FIDialog::FIDialog (QHash<QString, void *> objects, QString name) : Dialog (0, n
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("FI") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
+
+  Util util;
+  _input = util.object(QString("IndicatorInput"), QString(), QString("input"));
   
   createTab(objects);
   loadSettings();
@@ -36,6 +39,9 @@ FIDialog::FIDialog (QHash<QString, void *> objects, QString name) : Dialog (0, n
 FIDialog::~FIDialog ()
 {
   saveSettings();
+  
+  if (_input)
+    delete _input;
 }
 
 void
@@ -59,10 +65,18 @@ FIDialog::createTab (QHash<QString, void *> l)
   form->setMargin(10);
   w->setLayout(form);
 
-  _input = new InputObjectWidget;
-  _input->setObjects(ol);
-  connect(_input, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Input"), _input);
+  // input
+  if (_input)
+  {
+    QWidget *w = _input->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(ol);
+    _input->message(&toc);
+    
+    connect(_input, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Input"), w);
+  }
 
   _tabs->addTab(w, tr("Settings"));
 }
@@ -91,16 +105,39 @@ FIDialog::saveSettings()
 void
 FIDialog::setSettings (QString io, QString ck, QString vk)
 {
-  _input->setInput(io);
-  _input->setKey(tr("Close"), ck);
-  _input->setKey(tr("Volume"), vk);
+  if (! _input)
+    return;
+  
+  ObjectCommand toc(QString("set_input"));
+  toc.setValue(QString("input"), io);
+  _input->message(&toc);
+
+  toc.setCommand(QString("set_key"));
+  toc.setValue(QString("key"), tr("Close"));
+  toc.setValue(QString("data"), ck);
+  _input->message(&toc);
+  
+  toc.setValue(QString("key"), tr("Volume"));
+  toc.setValue(QString("data"), vk);
+  _input->message(&toc);
 }
 
 void
 FIDialog::settings (QString &io, QString &ck, QString &vk)
 {
-  io = _input->input();
-  ck = _input->key(tr("Close"));
-  vk = _input->key(tr("Volume"));
-}
+  if (! _input)
+    return;
+  
+  ObjectCommand toc(QString("input"));
+  _input->message(&toc);
+  io = toc.getString(QString("input"));
 
+  toc.setCommand(QString("key"));
+  toc.setValue(QString("key"), tr("Close"));
+  _input->message(&toc);
+  ck = toc.getString(QString("data"));
+
+  toc.setValue(QString("key"), tr("Volume"));
+  _input->message(&toc);
+  vk = toc.getString(QString("data"));
+}

@@ -217,13 +217,16 @@
     </message>
 </context>
 <context>
-    <name>BarLengthButton</name>
+    <name>BarLengthButtonPopupWidget</name>
     <message>
         <source>Bar Length</source>
         <translation type="unfinished"></translation>
     </message>
+</context>
+<context>
+    <name>BarLengthButtonWidget</name>
     <message>
-        <source>Bar &amp;Length</source>
+        <source>Bar Length</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -491,6 +494,14 @@ Create a new group first.</source>
     </message>
     <message>
         <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use Constant Value</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Constant Value</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -808,28 +819,60 @@ Create a new group first.</source>
     </message>
 </context>
 <context>
-    <name>DateRangeControl</name>
+    <name>DateRangeButtonObject</name>
     <message>
-        <source>Date Range</source>
+        <source>*</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1D</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1W</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1M</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>3M</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>6M</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1Y</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>2Y</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>5Y</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>10Y</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>25Y</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>50Y</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
-    <name>DateRangeDialog</name>
+    <name>DateRangeButtonWidget</name>
     <message>
-        <source>Date Range Override</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Start Date</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>End Date</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Settings</source>
+        <source>Date Range</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -891,18 +934,18 @@ Create a new group first.</source>
     </message>
 </context>
 <context>
-    <name>FileButton</name>
-    <message>
-        <source>Files</source>
-        <translation type="unfinished"></translation>
-    </message>
+    <name>FileButtonWidget</name>
     <message>
         <source>Select Files</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Files</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
-    <name>FontButton</name>
+    <name>FontButtonWidget</name>
     <message>
         <source>Font</source>
         <translation type="unfinished"></translation>
@@ -1912,6 +1955,25 @@ Create a new group first.</source>
     </message>
 </context>
 <context>
+    <name>PopupWidget</name>
+    <message>
+        <source>Range</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start Date</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>End Date</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>QObject</name>
     <message>
         <source>ROC</source>
@@ -1965,65 +2027,6 @@ Create a new group first.</source>
     </message>
     <message>
         <source>Settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>RangeButton</name>
-    <message>
-        <source>Date Range</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>OR</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>*</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>1D</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>1W</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>1M</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>3M</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>6M</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>1Y</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>2Y</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>5Y</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>10Y</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>25Y</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>50Y</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2318,6 +2321,26 @@ Create a new group first.</source>
     </message>
     <message>
         <source>Duplicate indicator name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save Results As Group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OTA - Scanner Save Results As Group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Group Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New Group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OTA - Scanner Save Group Warning</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

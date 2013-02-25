@@ -28,6 +28,9 @@ MADialog::MADialog (QHash<QString, void *> objects, QString name) : Dialog (0, n
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("MA") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
+
+  Util util;
+  _input = util.object(QString("IndicatorInput"), QString(), QString("input"));
   
   createMATab(objects);
   loadSettings();
@@ -36,6 +39,9 @@ MADialog::MADialog (QHash<QString, void *> objects, QString name) : Dialog (0, n
 MADialog::~MADialog ()
 {
   saveSettings();
+  
+  if (_input)
+    delete _input;
 }
 
 void
@@ -58,10 +64,18 @@ MADialog::createMATab (QHash<QString, void *> l)
   form->setMargin(10);
   w->setLayout(form);
 
-  _input = new InputObjectWidget;
-  _input->setObjects(ol);
-  connect(_input, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Input"), _input);
+  // input
+  if (_input)
+  {
+    QWidget *w = _input->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(ol);
+    _input->message(&toc);
+    
+    connect(_input, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Input"), w);
+  }
   
   // type
   QStringList tl;
@@ -114,8 +128,18 @@ MADialog::saveSettings()
 void
 MADialog::setSettings (QString i, QString ik, QString t, int p)
 {
-  _input->setInput(i);
-  _input->setKey(tr("Input"), ik);
+  if (_input)
+  {
+    ObjectCommand toc(QString("set_input"));
+    toc.setValue(QString("input"), i);
+    _input->message(&toc);
+
+    toc.setCommand(QString("set_key"));
+    toc.setValue(QString("key"), tr("Input"));
+    toc.setValue(QString("data"), ik);
+    _input->message(&toc);
+  }
+  
   _type->setCurrentIndex(_type->findText(t));
   _period->setValue(p);
 }
@@ -123,8 +147,18 @@ MADialog::setSettings (QString i, QString ik, QString t, int p)
 void
 MADialog::settings (QString &i, QString &ik, QString &t, int &p)
 {
-  i = _input->input();
-  ik = _input->key(tr("Input"));
+  if (_input)
+  {
+    ObjectCommand toc(QString("input"));
+    _input->message(&toc);
+    i = toc.getString(QString("input"));
+
+    toc.setCommand(QString("key"));
+    toc.setValue(QString("key"), tr("Input"));
+    _input->message(&toc);
+    ik = toc.getString(QString("data"));
+  }
+
   t = _type->currentText();
   p = _period->value();
 }

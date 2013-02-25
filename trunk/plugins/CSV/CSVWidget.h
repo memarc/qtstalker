@@ -27,8 +27,7 @@
 #include <QAction>
 #include <QStringList>
 
-#include "ObjectCommand.h"
-#include "FileButton.h"
+#include "Object.h"
 
 class CSVWidget : public QWidget
 {
@@ -62,7 +61,7 @@ class CSVWidget : public QWidget
     void threadMessage (ObjectCommand);
    
   private:
-    FileButton *_csvButton;
+    Object *_csvButton;
     QLineEdit *_format;
     QLineEdit *_dateFormat;
     QComboBox *_delimiter;

@@ -25,7 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class SARDialog : public Dialog
 {
@@ -44,7 +44,7 @@ class SARDialog : public Dialog
     void saveSettings ();
   
   protected:
-    InputObjectWidget *_input;
+    Object *_input;
     QDoubleSpinBox *_init;
     QDoubleSpinBox *_max;
 };

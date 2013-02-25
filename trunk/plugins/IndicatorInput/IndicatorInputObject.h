@@ -19,40 +19,39 @@
  *  USA.
  */
 
-// *************************************************************************************************
-// Custom class for PrefDialog to display a nice color on a button so we can display the color
-// without having to bring up the color dialog first. When pressed, displays the color selection dialog.
-// Used by PrefDialog
-// *************************************************************************************************
+#ifndef PLUGIN_INDICATOR_INPUT_OBJECT_HPP
+#define PLUGIN_INDICATOR_INPUT_OBJECT_HPP
 
-#ifndef COLOR_BUTTON_HPP
-#define COLOR_BUTTON_HPP
+#include <QStringList>
 
-#include <QPushButton>
-#include <QColor>
-#include <QWidget>
+#include "Object.h"
+#include "IndicatorInputWidget.h"
 
-class ColorButton : public QPushButton
+
+class IndicatorInputObject : public Object
 {
   Q_OBJECT
 
-  signals:
-    void valueChanged();
-
   public:
-    ColorButton (QWidget *, QColor);
-    QColor & color ();
-    void setColorButton ();
-    int isChanged();
+    IndicatorInputObject (QString profile, QString name);
+    ~IndicatorInputObject ();
+    int setObjects (ObjectCommand *);
+    int setInput (ObjectCommand *);
+    int input (ObjectCommand *);
+    int setKey (ObjectCommand *);
+    int key (ObjectCommand *);
+    int setOffset (ObjectCommand *);
+    int offset (ObjectCommand *);
+    int setEnabled (ObjectCommand *);
+    QWidget * widget ();
     
-  public slots:
-    void colorDialog ();
-    void colorDialog2 (QColor);
-    void setColor (QColor);
+  public slots:    
+    int message (ObjectCommand *);
+    void inputChanged ();
     
   private:
-    QColor _color;
-    int _changed;
+    QStringList _commandList;
+    IndicatorInputWidget *_widget;
 };
 
 #endif

@@ -25,7 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class FIDialog : public Dialog
 {
@@ -44,7 +44,7 @@ class FIDialog : public Dialog
     void saveSettings ();
   
   protected:
-    InputObjectWidget *_input;
+    Object *_input;
 };
 
 #endif

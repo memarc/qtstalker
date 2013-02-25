@@ -20,7 +20,7 @@
  */
 
 #include "ArithmeticDialog.h"
-#include "Object.h"
+#include "Util.h"
 
 
 ArithmeticDialog::ArithmeticDialog (QHash<QString, void *> objects, QStringList opList, QString name) : Dialog (0, name)
@@ -30,6 +30,10 @@ ArithmeticDialog::ArithmeticDialog (QHash<QString, void *> objects, QStringList 
   tl << dir.absolutePath() << QString("OTA") << QString("Arithmetic") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
 
+  Util util;
+  _input = util.object(QString("IndicatorInput"), QString(), QString("input"));
+  _input2 = util.object(QString("IndicatorInput"), QString(), QString("input2"));
+
   createTab(objects, opList);
   loadSettings();
 }
@@ -37,6 +41,12 @@ ArithmeticDialog::ArithmeticDialog (QHash<QString, void *> objects, QStringList 
 ArithmeticDialog::~ArithmeticDialog ()
 {
   saveSettings();
+  
+  if (_input)
+    delete _input;
+  
+  if (_input2)
+    delete _input2;
 }
 
 void
@@ -61,10 +71,18 @@ ArithmeticDialog::createTab (QHash<QString, void *> l, QStringList opList)
       ol.insert(it.key(), it.value());
   }
 
-  _input = new InputObjectWidget;
-  _input->setObjects(ol);
-  connect(_input, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Input"), _input);
+  // input
+  if (_input)
+  {
+    QWidget *w = _input->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(ol);
+    _input->message(&toc);
+    
+    connect(_input, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Input"), w);
+  }
 
   // op
   _op = new QComboBox;
@@ -72,10 +90,18 @@ ArithmeticDialog::createTab (QHash<QString, void *> l, QStringList opList)
   connect(_op, SIGNAL(currentIndexChanged(int)), this, SLOT(modified()));
   form->addRow(tr("Op"), _op);
 
-  _input2 = new InputObjectWidget;
-  _input2->setObjects(ol);
-  connect(_input2, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Input 2"), _input2);
+  // input 2
+  if (_input2)
+  {
+    QWidget *w = _input2->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(ol);
+    _input2->message(&toc);
+    
+    connect(_input2, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Input 2"), w);
+  }
 
   _tabs->addTab(w, tr("Settings"));
 }
@@ -104,19 +130,49 @@ ArithmeticDialog::saveSettings()
 void
 ArithmeticDialog::setSettings (QString i, QString ik, QString i2, QString i2k, int op)
 {
-  _input->setInput(i);
-  _input->setKey(tr("Input"), ik);
-  _input2->setInput(i2);
-  _input2->setKey(tr("Input"), i2k);
+  if (_input && _input2)
+  {
+    ObjectCommand toc(QString("set_input"));
+    toc.setValue(QString("input"), i);
+    _input->message(&toc);
+
+    toc.setValue(QString("input"), i2);
+    _input2->message(&toc);
+  
+    toc.setCommand(QString("set_key"));
+    toc.setValue(QString("key"), tr("Input"));
+    toc.setValue(QString("data"), ik);
+    _input->message(&toc);
+  
+    toc.setValue(QString("key"), tr("Input 2"));
+    toc.setValue(QString("data"), i2k);
+    _input2->message(&toc);
+  }
+
   _op->setCurrentIndex(op);
 }
 
 void
 ArithmeticDialog::settings (QString &i, QString &ik, QString &i2, QString &i2k, int &op)
 {
-  i = _input->input();
-  ik = _input->key(tr("Input"));
-  i2 = _input2->input();
-  i2k = _input2->key(tr("Input"));
+  if (_input && _input2)
+  {
+    ObjectCommand toc(QString("input"));
+    _input->message(&toc);
+    i = toc.getString(QString("input"));
+
+    _input2->message(&toc);
+    i2 = toc.getString(QString("input"));
+
+    toc.setCommand(QString("key"));
+    toc.setValue(QString("key"), tr("Input"));
+    _input->message(&toc);
+    ik = toc.getString(QString("data"));
+
+    toc.setValue(QString("key"), tr("Input 2"));
+    _input2->message(&toc);
+    i2k = toc.getString(QString("data"));
+  }
+  
   op = _op->currentIndex();
 }

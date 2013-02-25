@@ -28,6 +28,9 @@ VARDialog::VARDialog (QHash<QString, void *> objects, QString name) : Dialog (0,
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("VAR") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
+
+  Util util;
+  _input = util.object(QString("IndicatorInput"), QString(), QString("input"));
   
   createTab(objects);
   loadSettings();
@@ -36,6 +39,9 @@ VARDialog::VARDialog (QHash<QString, void *> objects, QString name) : Dialog (0,
 VARDialog::~VARDialog ()
 {
   saveSettings();
+  
+  if (_input)
+    delete _input;
 }
 
 void
@@ -59,10 +65,18 @@ VARDialog::createTab (QHash<QString, void *> l)
   form->setMargin(10);
   w->setLayout(form);
 
-  _input = new InputObjectWidget;
-  _input->setObjects(ol);
-  connect(_input, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Input"), _input);
+  // input
+  if (_input)
+  {
+    QWidget *w = _input->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(ol);
+    _input->message(&toc);
+    
+    connect(_input, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Input"), w);
+  }
   
   // period
   _period = new QSpinBox;
@@ -103,8 +117,18 @@ VARDialog::saveSettings()
 void
 VARDialog::setSettings (QString i, QString ik, int p, double d)
 {
-  _input->setInput(i);
-  _input->setKey(tr("Input"), ik);
+  if (_input)
+  {
+    ObjectCommand toc(QString("set_input"));
+    toc.setValue(QString("input"), i);
+    _input->message(&toc);
+
+    toc.setCommand(QString("set_key"));
+    toc.setValue(QString("key"), tr("Input"));
+    toc.setValue(QString("data"), ik);
+    _input->message(&toc);
+  }
+  
   _period->setValue(p);
   _dev->setValue(d);
 }
@@ -112,8 +136,18 @@ VARDialog::setSettings (QString i, QString ik, int p, double d)
 void
 VARDialog::settings (QString &i, QString &ik, int &p, double &d)
 {
-  i = _input->input();
-  ik = _input->key(tr("Input"));
+  if (_input)
+  {
+    ObjectCommand toc(QString("input"));
+    _input->message(&toc);
+    i = toc.getString(QString("input"));
+
+    toc.setCommand(QString("key"));
+    toc.setValue(QString("key"), tr("Input"));
+    _input->message(&toc);
+    ik = toc.getString(QString("data"));
+  }
+
   p = _period->value();
   d = _dev->value();
 }

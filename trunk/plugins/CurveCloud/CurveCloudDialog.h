@@ -25,8 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "ColorButton.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class CurveCloudDialog : public Dialog
 {
@@ -45,10 +44,10 @@ class CurveCloudDialog : public Dialog
     void saveSettings ();
 
   protected:
-    ColorButton *_color;
+    Object *_color;
     QLineEdit *_label;
-    InputObjectWidget *_base;
-    InputObjectWidget *_value;
+    Object *_base;
+    Object *_value;
     QComboBox *_plot;
 };
 

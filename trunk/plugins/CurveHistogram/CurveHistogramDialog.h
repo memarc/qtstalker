@@ -24,9 +24,8 @@
 
 #include <QtGui>
 
-#include "ColorButton.h"
+#include "Object.h"
 #include "Dialog.h"
-#include "InputObjectWidget.h"
 
 class CurveHistogramDialog : public Dialog
 {
@@ -45,10 +44,10 @@ class CurveHistogramDialog : public Dialog
     void saveSettings ();
 
   protected:
-    ColorButton *_color;
+    Object *_color;
     QLineEdit *_label;
     QComboBox *_plot;
-    InputObjectWidget *_input;
+    Object *_input;
 };
 
 #endif

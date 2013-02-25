@@ -25,7 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class MACDDialog : public Dialog
 {
@@ -44,7 +44,7 @@ class MACDDialog : public Dialog
     void saveSettings ();
   
   protected:
-    InputObjectWidget *_input;
+    Object *_input;
     QSpinBox *_fastPeriod;
     QSpinBox *_slowPeriod;
     QSpinBox *_signalPeriod;

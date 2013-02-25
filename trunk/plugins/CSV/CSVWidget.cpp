@@ -39,9 +39,6 @@ CSVWidget::CSVWidget (QMainWindow *mw, QString profile)
   _cancel = FALSE;
   _mw = mw;
   _profile = profile;
-  
-  createActions();
-  createGUI();
 
   QStringList tl;
   tl << QString("OTA -") << QString("CSV") << QString("(") << _profile << QString(")");
@@ -52,12 +49,21 @@ CSVWidget::CSVWidget (QMainWindow *mw, QString profile)
   tl << dir.absolutePath() << QString("OTA") << QString("CSV") << QString("profile") << _profile;
   _dbPath = tl.join("/");
 
+  Util util;
+  _csvButton = util.object(QString("FileButton"), _profile, QString("files"));
+  
+  createActions();
+  createGUI();
+
   loadSettings();
 }
 
 CSVWidget::~CSVWidget ()
 {
   saveSettings();
+  
+  if (_csvButton)
+    delete _csvButton;
 }
 
 void
@@ -113,10 +119,12 @@ CSVWidget::createGUI ()
   vbox->addLayout(form);
   
   // csv file
-  _csvButton = new FileButton(0);
-  connect(_csvButton, SIGNAL(valueChanged()), this, SLOT(buttonStatus()));
-  form->addRow (tr("CSV Files"), _csvButton);
-
+  if (_csvButton)
+  {
+    connect(_csvButton, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("CSV Files"), _csvButton->widget());
+  }
+  
   // format
   _format = new QLineEdit;
   form->addRow (tr("Format"), _format);
@@ -195,8 +203,17 @@ CSVWidget::importThread ()
 {
   importStart();
 
+  QStringList files;
+  if (_csvButton)
+  {
+    QString key("files");
+    ObjectCommand toc(key);
+    if (_csvButton->message(&toc))
+      files = toc.getList(key);
+  }
+  
   CSVThread *thread = new CSVThread(0,
-				    _csvButton->files(),
+				    files,
                                     _format->text(),
                                     _dateFormat->text(),
                                     _delimiter->currentText(),
@@ -214,7 +231,14 @@ CSVWidget::buttonStatus ()
 {
   int count = 0;
 
-  QStringList tl = _csvButton->files();
+  QStringList tl;
+  if (_csvButton)
+  {
+    QString key("files");
+    ObjectCommand toc(key);
+    if (_csvButton->message(&toc))
+      tl = toc.getList(key);
+  }
   if (tl.size())
     count++;
   
@@ -246,7 +270,13 @@ CSVWidget::loadSettings ()
   QPoint p = settings.value(QString("pos"), QPoint(0, 0)).toPoint();
   _mw->move(p);
   
-  _csvButton->setFiles(settings.value(QString("files")).toStringList());
+  if (_csvButton)
+  {
+    ObjectCommand toc(QString("set_files"));
+    toc.setValue(QString("files"), settings.value(QString("files")).toStringList());
+    _csvButton->message(&toc);
+  }
+  
   _format->setText(settings.value(QString("format"), "X,S,N,D,O,H,L,C,V").toString());
   _dateFormat->setText(settings.value(QString("dateFormat"), "yyyy-MM-dd").toString());
   _delimiter->setCurrentIndex(settings.value(QString("delimiter"), 1).toInt());
@@ -270,7 +300,14 @@ CSVWidget::saveSettings ()
   settings.setValue(QString("type"), _type->currentIndex());
   settings.setValue(QString("exchange"), _exchange->text());
   settings.setValue(QString("useFilename"), _filename->isChecked());
-  settings.setValue(QString("files"), _csvButton->files());
+  
+  if (_csvButton)
+  {
+    QString key("files");
+    ObjectCommand toc(key);
+    if (_csvButton->message(&toc))
+      settings.setValue(key, toc.getList(key));
+  }
 }
 
 void

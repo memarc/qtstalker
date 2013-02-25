@@ -28,6 +28,9 @@ PHASORDialog::PHASORDialog (QHash<QString, void *> objects, QString name) : Dial
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("PHASOR") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
+
+  Util util;
+  _input = util.object(QString("IndicatorInput"), QString(), QString("input"));
   
   createTab(objects);
   loadSettings();
@@ -36,6 +39,9 @@ PHASORDialog::PHASORDialog (QHash<QString, void *> objects, QString name) : Dial
 PHASORDialog::~PHASORDialog ()
 {
   saveSettings();
+  
+  if (_input)
+    delete _input;
 }
 
 void
@@ -60,10 +66,17 @@ PHASORDialog::createTab (QHash<QString, void *> l)
   w->setLayout(form);
 
   // input
-  _input = new InputObjectWidget;
-  _input->setObjects(ol);
-  connect(_input, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Input"), _input);
+  if (_input)
+  {
+    QWidget *w = _input->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(ol);
+    _input->message(&toc);
+    
+    connect(_input, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Input"), w);
+  }
 
   _tabs->addTab(w, tr("Settings"));
 }
@@ -92,14 +105,32 @@ PHASORDialog::saveSettings()
 void
 PHASORDialog::setSettings (QString io, QString ik)
 {
-  _input->setInput(io);
-  _input->setKey(tr("Input"), ik);
+  if (! _input)
+    return;
+  
+  ObjectCommand toc(QString("set_input"));
+  toc.setValue(QString("input"), io);
+  _input->message(&toc);
+
+  toc.setCommand(QString("set_key"));
+  toc.setValue(QString("key"), tr("Input"));
+  toc.setValue(QString("data"), ik);
+  _input->message(&toc);
 }
 
 void
 PHASORDialog::settings (QString &io, QString &ik)
 {
-  io = _input->input();
-  ik = _input->key(tr("Input"));
+  if (! _input)
+    return;
+  
+  ObjectCommand toc(QString("input"));
+  _input->message(&toc);
+  io = toc.getString(QString("input"));
+
+  toc.setCommand(QString("key"));
+  toc.setValue(QString("key"), tr("Input"));
+  _input->message(&toc);
+  ik = toc.getString(QString("data"));
 }
 

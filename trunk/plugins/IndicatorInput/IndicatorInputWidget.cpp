@@ -19,13 +19,13 @@
  *  USA.
  */
 
-#include "InputObjectWidget.h"
+#include "IndicatorInputWidget.h"
 #include "Object.h"
 
 #include <QDebug>
 #include <QLayout>
 
-InputObjectWidget::InputObjectWidget ()
+IndicatorInputWidget::IndicatorInputWidget ()
 {
   _offset = 0;
 
@@ -41,12 +41,12 @@ InputObjectWidget::InputObjectWidget ()
   _grid->addWidget(_input, 0, 0);
 }
 
-InputObjectWidget::~InputObjectWidget ()
+IndicatorInputWidget::~IndicatorInputWidget ()
 {
 }
 
 void
-InputObjectWidget::setObjects (QHash<QString, void *> d)
+IndicatorInputWidget::setObjects (QHash<QString, void *> d)
 {
   _objects = d;
   
@@ -57,7 +57,7 @@ InputObjectWidget::setObjects (QHash<QString, void *> d)
 }
 
 void
-InputObjectWidget::setInput (QString d)
+IndicatorInputWidget::setInput (QString d)
 {
   int pos = _input->findText(d);
   if (pos == -1)
@@ -68,13 +68,13 @@ InputObjectWidget::setInput (QString d)
 }
 
 QString
-InputObjectWidget::input ()
+IndicatorInputWidget::input ()
 {
   return _input->currentText();
 }
 
 void
-InputObjectWidget::setKey (QString k, QString d)
+IndicatorInputWidget::setKey (QString k, QString d)
 {
   QComboBox *key = _keys.value(k);
   if (! key)
@@ -105,7 +105,7 @@ InputObjectWidget::setKey (QString k, QString d)
 }
 
 QString
-InputObjectWidget::key (QString d)
+IndicatorInputWidget::key (QString d)
 {
   QComboBox *key = _keys.value(d);
   if (! key)
@@ -115,7 +115,7 @@ InputObjectWidget::key (QString d)
 }
 
 void
-InputObjectWidget::setOffset (int d)
+IndicatorInputWidget::setOffset (int d)
 {
   if (! _offset)
   {
@@ -130,7 +130,7 @@ InputObjectWidget::setOffset (int d)
 }
 
 int
-InputObjectWidget::offset ()
+IndicatorInputWidget::offset ()
 {
   if (! _offset)
     return 0;
@@ -139,7 +139,7 @@ InputObjectWidget::offset ()
 }
 
 void
-InputObjectWidget::objectChanged ()
+IndicatorInputWidget::objectChanged ()
 {
   Object *o = (Object *) _objects.value(_input->currentText());  
   if (! o)

@@ -3,7 +3,6 @@ CONFIG += plugin
 MOC_DIR += build
 OBJECTS_DIR += build
 INCLUDEPATH += ../../src
-QMAKE_CXXFLAGS += -fPIC -O2
 
 
 HEADERS += Symbol.h
@@ -15,14 +14,10 @@ SOURCES += SymbolObject.cpp
 HEADERS += SymbolSelectDialog.h
 SOURCES += SymbolSelectDialog.cpp
 HEADERS += ../../src/Object.h
-#SOURCES += ../../src/Object.cpp
 HEADERS += ../../src/Util.h
-#SOURCES += ../../src/Util.cpp
 HEADERS += ../../src/PluginCommand.h
 HEADERS += ../../src/ObjectCommand.h
-#SOURCES += ../../src/ObjectCommand.cpp
 HEADERS += ../../src/Plugin.h
-#SOURCES += ../../src/Dialog.cpp
 HEADERS += ../../src/Dialog.h
 
 OBJECTS += ../../src/build/Dialog.o

@@ -25,7 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class ULTOSCDialog : public Dialog
 {
@@ -44,7 +44,7 @@ class ULTOSCDialog : public Dialog
     void saveSettings ();
   
   protected:
-    InputObjectWidget *_input;
+    Object *_input;
     QSpinBox *_speriod;
     QSpinBox *_mperiod;
     QSpinBox *_lperiod;

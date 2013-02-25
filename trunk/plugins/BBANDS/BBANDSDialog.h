@@ -25,7 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class BBANDSDialog : public Dialog
 {
@@ -45,7 +45,7 @@ class BBANDSDialog : public Dialog
   
   protected:
     QComboBox *_type;
-    InputObjectWidget *_input;
+    Object *_input;
     QSpinBox *_period;
     QDoubleSpinBox *_udev;
     QDoubleSpinBox *_ldev;

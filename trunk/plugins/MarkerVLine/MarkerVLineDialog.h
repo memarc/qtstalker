@@ -24,7 +24,7 @@
 
 #include <QtGui>
 
-#include "ColorButton.h"
+#include "Object.h"
 #include "Dialog.h"
 
 class MarkerVLineDialog : public Dialog
@@ -45,7 +45,7 @@ class MarkerVLineDialog : public Dialog
 
   private:
     QDateTimeEdit *_date;
-    ColorButton *_color;
+    Object *_color;
     QComboBox *_plot;
 };
 

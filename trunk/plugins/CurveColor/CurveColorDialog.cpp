@@ -21,7 +21,6 @@
 
 #include "CurveColorDialog.h"
 #include "Util.h"
-#include "Object.h"
 
 CurveColorDialog::CurveColorDialog (QHash<QString, void *> objects, QStringList opList, QString name) :
                                     Dialog (0, name)
@@ -30,6 +29,11 @@ CurveColorDialog::CurveColorDialog (QHash<QString, void *> objects, QStringList 
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("CurveColor") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
+
+  Util util;
+  _color = util.object(QString("ColorButton"), QString(), QString("color"));
+
+  _input = util.object(QString("IndicatorInput"), QString(), QString("input"));
   
   createColorTab(objects, opList);
   loadSettings();
@@ -38,6 +42,11 @@ CurveColorDialog::CurveColorDialog (QHash<QString, void *> objects, QStringList 
 CurveColorDialog::~CurveColorDialog ()
 {
   saveSettings();
+  
+  if (_color)
+    delete _color;
+  if (_input)
+    delete _input;
 }
 
 void
@@ -76,11 +85,18 @@ CurveColorDialog::createColorTab (QHash<QString, void *> l, QStringList opList)
   connect(_plot, SIGNAL(currentIndexChanged(int)), this, SLOT(modified()));
   form->addRow(tr("Plot"), _plot);
 
-  // input objects
-  _input = new InputObjectWidget;
-  _input->setObjects(il);
-  connect(_input, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Input"), _input);
+  // input
+  if (_input)
+  {
+    QWidget *w = _input->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(il);
+    _input->message(&toc);
+    
+    connect(_input, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Input"), w);
+  }
   
   // op
   _op = new QComboBox;
@@ -99,11 +115,13 @@ CurveColorDialog::createColorTab (QHash<QString, void *> l, QStringList opList)
   _input2->addItems(cl);
   connect(_input2, SIGNAL(currentIndexChanged(int)), this, SLOT(modified()));
   form->addRow(tr("Curve"), _input2);
-
+  
   // color
-  _color = new ColorButton(0, QColor(Qt::red));
-  connect(_color, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Color"), _color);
+  if (_color)
+  {
+    connect(_color, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Color"), _color->widget());
+  }
 
   _tabs->addTab(w, tr("Settings"));
 }
@@ -132,9 +150,25 @@ CurveColorDialog::saveSettings()
 void
 CurveColorDialog::setSettings (QColor c, QString i, QString ik, QString i2, int op, double v, QString po)
 {
-  _color->setColor(c);
-  _input->setInput(i);
-  _input->setKey(tr("Input"), ik);
+  if (_color)
+  {
+    ObjectCommand toc(QString("set_color"));
+    toc.setValue(QString("color"), c);
+    _color->message(&toc);
+  }
+
+  if (_input)
+  {
+    ObjectCommand toc(QString("set_input"));
+    toc.setValue(QString("input"), i);
+    _input->message(&toc);
+
+    toc.setCommand(QString("set_key"));
+    toc.setValue(QString("key"), tr("Input"));
+    toc.setValue(QString("data"), ik);
+    _input->message(&toc);
+  }
+  
   _input2->setCurrentIndex(_input2->findText(i2));
   _op->setCurrentIndex(op);
   _value->setValue(v);
@@ -146,9 +180,26 @@ CurveColorDialog::setSettings (QColor c, QString i, QString ik, QString i2, int 
 void
 CurveColorDialog::settings (QColor &c, QString &i, QString &ik, QString &i2, int &op, double &v, QString &po)
 {
-  c = _color->color();
-  i = _input->input();
-  ik = _input->key(tr("Input"));
+  if (_color)
+  {
+    QString key("color");
+    ObjectCommand toc(key);
+    if (_color->message(&toc))
+      c = toc.getColor(key);
+  }
+
+  if (_input)
+  {
+    ObjectCommand toc(QString("input"));
+    _input->message(&toc);
+    i = toc.getString(QString("input"));
+
+    toc.setCommand(QString("key"));
+    toc.setValue(QString("key"), tr("Input"));
+    _input->message(&toc);
+    ik = toc.getString(QString("data"));
+  }
+  
   i2 = _input2->currentText();
   v = _value->value();
   op = _op->currentIndex();

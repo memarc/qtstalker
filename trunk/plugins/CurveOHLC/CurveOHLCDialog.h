@@ -25,8 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "ColorButton.h"
-#include "InputObjectWidget.h"
+#include "Object.h"
 
 class CurveOHLCDialog : public Dialog
 {
@@ -45,9 +44,9 @@ class CurveOHLCDialog : public Dialog
     void saveSettings ();
 
   protected:
-    ColorButton *_color;
+    Object *_color;
     QLineEdit *_label;
-    InputObjectWidget *_input;
+    Object *_input;
     QComboBox *_plot;
 };
 

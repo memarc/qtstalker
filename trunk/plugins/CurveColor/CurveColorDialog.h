@@ -25,8 +25,7 @@
 #include <QtGui>
 
 #include "Dialog.h"
-#include "InputObjectWidget.h"
-#include "ColorButton.h"
+#include "Object.h"
 
 class CurveColorDialog : public Dialog
 {
@@ -46,10 +45,10 @@ class CurveColorDialog : public Dialog
   
   protected:
     QComboBox *_op;
-    InputObjectWidget *_input;
+    Object *_input;
     QComboBox *_input2;
     QComboBox *_plot;
-    ColorButton *_color;
+    Object *_color;
     QDoubleSpinBox *_value;
 };
 

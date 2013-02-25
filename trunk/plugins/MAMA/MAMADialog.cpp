@@ -28,6 +28,9 @@ MAMADialog::MAMADialog (QHash<QString, void *> objects, QString name) : Dialog (
   QDir dir(QDir::homePath());
   tl << dir.absolutePath() << QString("OTA") << QString("MAMA") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
+
+  Util util;
+  _input = util.object(QString("IndicatorInput"), QString(), QString("input"));
   
   createTab(objects);
   loadSettings();
@@ -36,6 +39,9 @@ MAMADialog::MAMADialog (QHash<QString, void *> objects, QString name) : Dialog (
 MAMADialog::~MAMADialog ()
 {
   saveSettings();
+  
+  if (_input)
+    delete _input;
 }
 
 void
@@ -60,10 +66,17 @@ MAMADialog::createTab (QHash<QString, void *> l)
   w->setLayout(form);
 
   // input
-  _input = new InputObjectWidget;
-  _input->setObjects(ol);
-  connect(_input, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Input"), _input);
+  if (_input)
+  {
+    QWidget *w = _input->widget();
+    
+    ObjectCommand toc(QString("set_objects"));
+    toc.setObjects(ol);
+    _input->message(&toc);
+    
+    connect(_input, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Input"), w);
+  }
   
   // fast
   _fast = new QDoubleSpinBox;
@@ -104,8 +117,18 @@ MAMADialog::saveSettings()
 void
 MAMADialog::setSettings (QString io, QString ik, double fast, double slow)
 {
-  _input->setInput(io);
-  _input->setKey(tr("Input"), ik);
+  if (_input)
+  {
+    ObjectCommand toc(QString("set_input"));
+    toc.setValue(QString("input"), io);
+    _input->message(&toc);
+
+    toc.setCommand(QString("set_key"));
+    toc.setValue(QString("key"), tr("Input"));
+    toc.setValue(QString("data"), ik);
+    _input->message(&toc);
+  }
+  
   _fast->setValue(fast);
   _slow->setValue(slow);
 }
@@ -113,9 +136,18 @@ MAMADialog::setSettings (QString io, QString ik, double fast, double slow)
 void
 MAMADialog::settings (QString &io, QString &ik, double &fast, double &slow)
 {
-  io = _input->input();
-  ik = _input->key(tr("Input"));
+  if (_input)
+  {
+    ObjectCommand toc(QString("input"));
+    _input->message(&toc);
+    io = toc.getString(QString("input"));
+
+    toc.setCommand(QString("key"));
+    toc.setValue(QString("key"), tr("Input"));
+    _input->message(&toc);
+    ik = toc.getString(QString("data"));
+  }
+
   fast = _fast->value();
   slow = _slow->value();
 }
-

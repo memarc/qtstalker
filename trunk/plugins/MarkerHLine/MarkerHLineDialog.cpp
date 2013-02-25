@@ -20,7 +20,7 @@
  */
 
 #include "MarkerHLineDialog.h"
-#include "Object.h"
+#include "Util.h"
 
 #include <QDebug>
 
@@ -35,6 +35,9 @@ MarkerHLineDialog::MarkerHLineDialog (QHash<QString, void *> l, QString name) : 
   tl << dir.absolutePath() << QString("OTA") << QString("MarkerHLine") << QString("settings") << QString("dialog");
   _settingsPath = tl.join("/");
 
+  Util util;
+  _color = util.object(QString("ColorButton"), QString(), QString("color"));
+
   createTab(l);
   loadSettings();
 }
@@ -42,6 +45,9 @@ MarkerHLineDialog::MarkerHLineDialog (QHash<QString, void *> l, QString name) : 
 MarkerHLineDialog::~MarkerHLineDialog ()
 {
   saveSettings();
+  
+  if (_color)
+    delete _color;
 }
 
 void
@@ -72,11 +78,13 @@ MarkerHLineDialog::createTab (QHash<QString, void *> l)
     _plot->addItems(tl);
     form->addRow(tr("Plot"), _plot);
   }
-
+  
   // color
-  _color = new ColorButton(this, QColor(Qt::red));
-  connect(_color, SIGNAL(valueChanged()), this, SLOT(modified()));
-  form->addRow(tr("Color"), _color);
+  if (_color)
+  {
+    connect(_color, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(modified()));
+    form->addRow(tr("Color"), _color->widget());
+  }
   
   // price
   _price = new QDoubleSpinBox;
@@ -110,9 +118,15 @@ MarkerHLineDialog::saveSettings ()
 }
 
 void
-MarkerHLineDialog::setSettings (QColor color, double price, QString po)
+MarkerHLineDialog::setSettings (QColor c, double price, QString po)
 {
-  _color->setColor(color);
+  if (_color)
+  {
+    ObjectCommand toc(QString("set_color"));
+    toc.setValue(QString("color"), c);
+    _color->message(&toc);
+  }
+  
   _price->setValue(price);
 
   int pos = _plot->findText(po);
@@ -122,9 +136,16 @@ MarkerHLineDialog::setSettings (QColor color, double price, QString po)
 }
 
 void
-MarkerHLineDialog::settings (QColor &color, double &price, QString &po)
+MarkerHLineDialog::settings (QColor &c, double &price, QString &po)
 {
-  color = _color->color();
+  if (_color)
+  {
+    QString key("color");
+    ObjectCommand toc(key);
+    if (_color->message(&toc))
+      c = toc.getColor(key);
+  }
+  
   price = _price->value();
   po = _plot->currentText();
 }

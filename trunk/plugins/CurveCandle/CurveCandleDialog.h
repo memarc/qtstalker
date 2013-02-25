@@ -26,8 +26,6 @@
 
 #include "Object.h"
 #include "Dialog.h"
-#include "ColorButton.h"
-#include "InputObjectWidget.h"
 
 class CurveCandleDialog : public Dialog
 {
@@ -46,9 +44,9 @@ class CurveCandleDialog : public Dialog
     void saveSettings ();
 
   protected:
-    ColorButton *_color;
+    Object *_color;
     QLineEdit *_label;
-    InputObjectWidget *_input;
+    Object *_input;
     QComboBox *_plot;
 };
 
