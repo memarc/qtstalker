@@ -7,8 +7,6 @@ INCLUDEPATH += ../../src
 
 HEADERS += Group.h
 SOURCES += Group.cpp
-HEADERS += GroupDialog.h
-SOURCES += GroupDialog.cpp
 HEADERS += GroupObject.h
 SOURCES += GroupObject.cpp
 HEADERS += ../../src/Object.h
@@ -16,9 +14,7 @@ HEADERS += ../../src/Util.h
 HEADERS += ../../src/Plugin.h
 HEADERS += ../../src/PluginCommand.h
 HEADERS += ../../src/ObjectCommand.h
-HEADERS += ../../src/Dialog.h
 
-OBJECTS += ../../src/build/Dialog.o
 OBJECTS += ../../src/build/Object.o
 OBJECTS += ../../src/build/ObjectCommand.o
 OBJECTS += ../../src/build/Util.o

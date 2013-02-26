@@ -20,7 +20,6 @@
  */
 
 #include "GroupObject.h"
-#include "GroupDialog.h"
 #include "Util.h"
 
 #include <QtDebug>
