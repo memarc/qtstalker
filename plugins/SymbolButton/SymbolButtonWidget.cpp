@@ -21,6 +21,7 @@
 
 #include "SymbolButtonWidget.h"
 #include "Util.h"
+#include "../pics/chart.xpm"
 
 #include <QDebug>
 
@@ -32,6 +33,8 @@ SymbolButtonWidget::SymbolButtonWidget ()
     connect(_dialog, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(updateButtonText()));
   
   connect(this, SIGNAL(clicked()), this, SLOT(symbolDialog()));
+  
+  setIcon(QIcon(chart_xpm));
   
   updateButtonText();
 }
@@ -84,16 +87,19 @@ SymbolButtonWidget::updateButtonText ()
   if (! _dialog)
     return;
   
-  ObjectCommand toc(QString("settings"));
+  QStringList tl;
+  tl << QString::number(count()) << tr("symbols selected");
+  setToolTip(tl.join(" "));
+}
+
+int
+SymbolButtonWidget::count ()
+{
+  if (! _dialog)
+    return 0;
+  
+  ObjectCommand toc(QString("size"));
   _dialog->message(&toc);
   
-  QStringList sl = toc.getList(QString("symbols"));
-  
-  QString ts = QString::number(sl.size());
-  
-  QStringList tl;
-  tl << ts << tr("symbols selected");
-  setToolTip(tl.join(" "));
-  
-  setText(ts);
+  return toc.getInt(QString("size"));
 }

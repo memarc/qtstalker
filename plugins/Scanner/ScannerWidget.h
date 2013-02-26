@@ -39,13 +39,9 @@ class ScannerWidget : public QWidget
       _INDICATOR_EDIT,
       _INDICATOR_NEW,
       _INDICATOR_REMOVE,
-      _HELP,
-      _QUIT,
       _RESULT_SAVE_GROUP,
       _SCAN,
-      _STOP,
-      _SYMBOL_ADD,
-      _SYMBOL_REMOVE
+      _STOP
     };
     
     ScannerWidget (QMainWindow *, QString profile);
@@ -62,23 +58,18 @@ class ScannerWidget : public QWidget
     void help ();
     void done ();
     void threadMessage (ObjectCommand);
-    void symbolObjectMessage (ObjectCommand);
     void newIndicator ();
     void editIndicator ();
     void removeIndicator ();
-    void addSymbols ();
-    void removeSymbols ();
     void saveSettings ();
     void saveResults ();
     
     void indicatorItemClicked (QTreeWidgetItem *, int);
-    void indicatorItemDoubleClicked (QTreeWidgetItem *, int);
-    void symbolItemClicked (QListWidgetItem *);
+//    void indicatorItemDoubleClicked (QTreeWidgetItem *, int);
     
   private:
-    Object *_symbolObject;
+    Object *_symbolButton;
     QTreeWidget *_indicators;
-    QListWidget *_symbols;
     QListWidget *_results;
     QProgressBar *_progBar;
     QToolBar *_toolBar;

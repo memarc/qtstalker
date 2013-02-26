@@ -37,6 +37,7 @@ SymbolButtonObject::SymbolButtonObject (QString profile, QString name)
   _commandList << QString("load");
   _commandList << QString("save");
   _commandList << QString("set_symbols");
+  _commandList << QString("size");
 }
 
 SymbolButtonObject::~SymbolButtonObject ()
@@ -66,6 +67,9 @@ SymbolButtonObject::message (ObjectCommand *oc)
       break;
     case 3:
       rc = setSymbols(oc);
+      break;
+    case 4:
+      rc = size(oc);
       break;
     default:
       break;
@@ -164,6 +168,20 @@ SymbolButtonObject::setSymbols (ObjectCommand *oc)
   }
   
   _widget->setSymbols(oc->getList(QString("symbols")));
+  
+  return 1;
+}
+
+int
+SymbolButtonObject::size (ObjectCommand *oc)
+{
+  if (! _widget)
+  {
+    qDebug() << "SymbolButtonObject::size: invalid widget";
+    return 0;
+  }
+  
+  oc->setValue(QString("size"), _widget->count());
   
   return 1;
 }

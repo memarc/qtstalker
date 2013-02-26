@@ -42,6 +42,7 @@ SymbolSelectObject::SymbolSelectObject (QString profile, QString name)
   _commandList << QString("save");
   _commandList << QString("set_settings");
   _commandList << QString("settings");
+  _commandList << QString("size");
 }
 
 SymbolSelectObject::~SymbolSelectObject ()
@@ -69,6 +70,9 @@ SymbolSelectObject::message (ObjectCommand *oc)
       break;
     case 4:
       rc = settings(oc);
+      break;
+    case 5:
+      rc = size(oc);
       break;
     default:
       break;
@@ -164,4 +168,11 @@ SymbolSelectObject::symbolsChanged ()
 {
   ObjectCommand toc(QString("symbols_changed"));
   emit signalMessage(toc);
+}
+
+int
+SymbolSelectObject::size (ObjectCommand *oc)
+{
+  oc->setValue(QString("size"), _symbols.size());
+  return 1;
 }
