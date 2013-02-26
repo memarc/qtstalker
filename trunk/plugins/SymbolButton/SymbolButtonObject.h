@@ -39,6 +39,7 @@ class SymbolButtonObject : public Object
     int load (ObjectCommand *);
     int save (ObjectCommand *);
     int setSymbols (ObjectCommand *);
+    int size (ObjectCommand *);
     QWidget * widget ();
     
   public slots:    

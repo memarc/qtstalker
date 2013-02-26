@@ -38,6 +38,7 @@ class SymbolButtonWidget : public QToolButton
     SymbolButtonWidget ();
     ~SymbolButtonWidget ();
     QStringList symbols ();
+    int count ();
 
   public slots:
     void symbolDialog ();

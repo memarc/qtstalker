@@ -39,6 +39,7 @@ class SymbolSelectObject : public Object
     int save (ObjectCommand *);
     int setSettings (ObjectCommand *);
     int settings (ObjectCommand *);
+    int size (ObjectCommand *);
     
   public slots:    
     int message (ObjectCommand *);
