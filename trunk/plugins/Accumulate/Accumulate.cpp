@@ -19,23 +19,37 @@
  *  USA.
  */
 
+#include "Accumulate.h"
+#include "AccumulateObject.h"
 
-#ifndef PLUGIN_ARITHMETIC_H
-#define PLUGIN_ARITHMETIC_H
 
-#include "Plugin.h"
-
-class Arithmetic : public QObject, public Plugin
+Accumulate::Accumulate ()
 {
-  Q_OBJECT
-  Q_INTERFACES(Plugin)
+  _commandList << QString("type");
+  _commandList << QString("object");
+}
 
-  public:
-    Arithmetic ();
-    int command (PluginCommand *); 
-    
-  protected:
-    QStringList _commandList;
-};
+int
+Accumulate::command (PluginCommand *pc)
+{
+  int rc = 0;
 
-#endif
+  switch (_commandList.indexOf(pc->command))
+  {
+    case 0: // type
+      pc->type = QString("indicator");
+      rc = 1;
+      break;
+    case 1: // object
+      pc->object = new AccumulateObject(pc->profile, pc->name);
+      rc = 1;
+      break;
+    default:
+      break;
+  }
+  
+  return rc;
+}
+
+// do not remove
+Q_EXPORT_PLUGIN2(Accumulate, Accumulate);

@@ -20,18 +20,18 @@
  */
 
 
-#ifndef PLUGIN_ARITHMETIC_H
-#define PLUGIN_ARITHMETIC_H
+#ifndef PLUGIN_ACCUMULATE_H
+#define PLUGIN_ACCUMULATE_H
 
 #include "Plugin.h"
 
-class Arithmetic : public QObject, public Plugin
+class Accumulate : public QObject, public Plugin
 {
   Q_OBJECT
   Q_INTERFACES(Plugin)
 
   public:
-    Arithmetic ();
+    Accumulate ();
     int command (PluginCommand *); 
     
   protected:

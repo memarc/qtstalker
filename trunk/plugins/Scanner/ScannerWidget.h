@@ -63,6 +63,7 @@ class ScannerWidget : public QWidget
     void removeIndicator ();
     void saveSettings ();
     void saveResults ();
+    void indicatorMessage (ObjectCommand);
     
     void indicatorItemClicked (QTreeWidgetItem *, int);
 //    void indicatorItemDoubleClicked (QTreeWidgetItem *, int);

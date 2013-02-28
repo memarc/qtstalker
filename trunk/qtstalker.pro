@@ -101,6 +101,7 @@ TEMPLATE = subdirs
 SUBDIRS += src
 
 # compile plugins
+SUBDIRS += plugins/Accumulate
 SUBDIRS += plugins/AD
 SUBDIRS += plugins/ADX
 SUBDIRS += plugins/ADXR

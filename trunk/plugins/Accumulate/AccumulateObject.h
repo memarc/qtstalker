@@ -19,54 +19,40 @@
  *  USA.
  */
 
-#ifndef PLUGIN_INDICATOR_OBJECT_HPP
-#define PLUGIN_INDICATOR_OBJECT_HPP
+#ifndef PLUGIN_ACCUMULATE_OBJECT_HPP
+#define PLUGIN_ACCUMULATE_OBJECT_HPP
 
-//#include <QHash>
+#include <QStringList>
+#include <QMap>
 
 #include "Object.h"
-#include "IndicatorDialog.h"
+#include "AccumulateDialog.h"
 
-class IndicatorObject : public Object
+class AccumulateObject : public Object
 {
   Q_OBJECT
-  
-  public:
-    IndicatorObject (QString profile, QString name);
-    ~IndicatorObject ();
-    int calculate (ObjectCommand *);
-    int setInput (ObjectCommand *);
-    int setIndex (ObjectCommand *);
-    int loadMarkers (ObjectCommand *);
-    int dialog (ObjectCommand *);
-    int load (ObjectCommand *);
-    int pluginSteps (ObjectCommand *);
-    int getObject (ObjectCommand *);
 
-    void clear();
-    int loadLocal ();
-    int plot ();
-    void savePlotSettings ();
-    int remove ();
-    void saveMarkers ();
-    QWidget * widget ();
+  public:
+    AccumulateObject (QString profile, QString name);
+    ~AccumulateObject ();
+    void clear ();
+    int update (ObjectCommand *);
+    int dialog (ObjectCommand *);
+    int output (ObjectCommand *);
+    int load (ObjectCommand *);
+    int save (ObjectCommand *);
+    int outputKeys (ObjectCommand *);
     
-  public slots:
+  public slots:    
     int message (ObjectCommand *);
-    void dialogDone ();
-    void dialogCancel ();
-    void plotMessage (ObjectCommand);
-   
+    void dialogDone (void *);
+    
   private:
     QStringList _commandList;
-    QStringList _order;
-    QStringList _plotCommands;
-    QString _indicatorPath;
-    QString _symbol;
-    QString _length;
-    QHash<QString, Object *> _objects;
-    QWidget *_widget;
-    QGridLayout *_grid;
+    QMap<int, Data *> _bars;
+    QString _inputObject;
+    QString _inputKey;
+    QString _outputKey;
 };
 
 #endif

@@ -482,7 +482,10 @@ ScannerWidget::addIndicatorItem (QString file, QString name)
     return 0;
   }
   else
+  {
+    connect(o, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(indicatorMessage(ObjectCommand)));
     _objects.insert(name, o);
+  }
   
   ObjectCommand toc(QString("load"));
   toc.setValue(QString("file"), file);
@@ -660,19 +663,57 @@ ScannerWidget::saveResults ()
       return;
     }
   }
-  
+
+  // remove group
   toc.setCommand(QString("remove"));
+  group->setName(name);
   group->message(&toc);
   
+  // make group list
   QStringList sl;
   for (int pos = 0; pos < _results->count(); pos++)
   {
     QListWidgetItem *i = _results->item(pos);
     sl << i->text();
   }
+
   toc.setCommand(QString("add"));
   toc.setValue(QString("group"), name);
   toc.setValue(QString("list"), sl);
   group->message(&toc);
   delete group;
+}
+
+void
+ScannerWidget::indicatorMessage (ObjectCommand oc)
+{
+  if (oc.command() != QString("dialog_done"))
+    return;
+
+  QString name = oc.getString(QString("name"));
+  
+  Object *o = _objects.value(name);
+  if (! o)
+    return;
+  
+  ObjectCommand toc(QString("plugin_steps"));
+  toc.setValue(QString("plugin"), QString("CompareValues"));
+  if (! o->message(&toc))
+    return;
+  
+  QStringList tl = toc.getList(QString("steps"));
+  
+  QList<QTreeWidgetItem *> il = _indicators->selectedItems();
+  if (! il.size())
+    return;
+  QTreeWidgetItem *i = il.at(0);
+    
+  QComboBox *steps = (QComboBox *) _indicators->itemWidget(i, 2);
+  if (! steps)
+    return;
+  QString currentStep = steps->currentText();
+  steps->clear();
+  steps->addItems(tl);
+  if (! currentStep.isEmpty())
+    steps->setCurrentIndex(tl.indexOf(currentStep));
 }
