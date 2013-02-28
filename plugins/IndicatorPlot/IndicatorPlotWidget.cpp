@@ -101,7 +101,8 @@ IndicatorPlotWidget::loadSettings ()
   tl << dir.absolutePath() << QString("OTA") << QString("IndicatorPlot") << _profile << QString("indicator");
   dir.setPath(tl.join("/"));
   QStringList indicators = dir.entryList(QStringList(), QDir::Files | QDir::NoDotAndDotDot, QDir::NoSort);
-  
+qDebug() << "IndicatorPlotWidget::loadSettings" << indicators;
+
   // load indicators
   for (int pos = 0; pos < indicators.size(); pos++)
   {
@@ -210,6 +211,7 @@ IndicatorPlotWidget::addPlot (QString file, QString name, int row, int col)
   {
     connect(i, SIGNAL(signalMessage(ObjectCommand)), this, SLOT(indicatorObjectMessage(ObjectCommand)));
   }
+qDebug() << "IndicatorPlotWidget::addPlot: about to load indicator" << file;
 
   ObjectCommand toc(QString("load"));
   toc.setValue(QString("file"), file);
@@ -219,6 +221,7 @@ IndicatorPlotWidget::addPlot (QString file, QString name, int row, int col)
     delete i;
     return 0;
   }
+qDebug() << "IndicatorPlotWidget::addPlot: indicator OK" << file;
 
   // get plot widget
   QWidget *w = i->widget();

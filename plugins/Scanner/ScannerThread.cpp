@@ -126,7 +126,7 @@ ScannerThread::run ()
         andTotal++;
       
       double v = toc.getDouble(QString("value"));
-qDebug() << "ScannerThread::run: value" << step->plugin() << v;
+//qDebug() << "ScannerThread::run: value" << step->plugin() << v;
       if (! v)
         continue;
       

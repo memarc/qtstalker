@@ -66,7 +66,7 @@ PlotWidgetCursorInfo::draw (QPainter *p)
   qSort(keys);
   
   int x = 0;
-  int y = 0;
+  int y = fm.height() - 2;
   for (int pos = 0; pos < _fields.size(); pos++)
   {
     if (_info.contains(_fields.at(pos)))
@@ -95,14 +95,6 @@ PlotWidgetCursorInfo::setInfo (QMouseEvent *event, QHash<QString, Object *> &ite
 
   int index = _xmap->xToIndex(event->pos().x());
 
-  // date
-  QDateTime dt = _xmap->indexToDate(index);
-  if (dt.isValid())
-  {
-    _info.insert(tr("D"), QVariant(dt.toString("yyyy-MM-dd")));
-    _info.insert(tr("T"), QVariant(dt.toString("HH:mm:ss")));
-  }
-
   ObjectCommand oc(QString("info"));
   oc.setValue(QString("event"), (void *) event);
   oc.setValue(QString("index"), index);
@@ -125,6 +117,14 @@ PlotWidgetCursorInfo::setInfo (QMouseEvent *event, QHash<QString, Object *> &ite
       QVariant v = it2.value();
       _info.insert(it2.key(), v);
     }
+  }
+
+  // date
+  QDateTime dt = _xmap->indexToDate(index);
+  if (dt.isValid())
+  {
+    _info.insert(tr("D"), QVariant(dt.toString("yyyy-MM-dd")));
+    _info.insert(tr("T"), QVariant(dt.toString("HH:mm:ss")));
   }
   
   emit signalDraw();

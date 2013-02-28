@@ -24,6 +24,7 @@
 #include "../pics/edit.xpm"
 #include "../pics/delete.xpm"
 #include "../pics/new.xpm"
+#include "../pics/refresh.xpm"
 
 #include <QDebug>
 
@@ -67,6 +68,13 @@ GroupPage::createActions ()
   action->setStatusTip(tr("Delete group") + "...");
   connect(action, SIGNAL(triggered(bool)), this, SLOT(deleteGroup()));
   _actions.insert(_GROUP_DELETE, action);
+
+  action  = new QAction(QIcon(refresh_xpm), tr("&Refresh List"), this);
+  action->setShortcut(QKeySequence(Qt::CTRL+Qt::Key_R));
+  action->setToolTip(tr("Refresh List"));
+  action->setStatusTip(tr("Refresh List"));
+  connect(action, SIGNAL(triggered(bool)), this, SLOT(loadGroups()));
+  _actions.insert(_REFRESH, action);
 }
 
 void
@@ -93,6 +101,8 @@ GroupPage::createGUI ()
   _menu->addAction(_actions.value(_GROUP_NEW));
   _menu->addAction(_actions.value(_GROUP_EDIT));
   _menu->addAction(_actions.value(_GROUP_DELETE));
+  _menu->addSeparator();
+  _menu->addAction(_actions.value(_REFRESH));
 }
 
 void
@@ -258,20 +268,20 @@ GroupPage::loadGroups ()
     QTreeWidgetItem *p = new QTreeWidgetItem(_nav);
     p->setText(0, groups.at(pos));
     
-    toc.setCommand(QString("symbols"));
-    if (! group->message(&toc))
+    ObjectCommand goc(QString("symbols"));
+    if (! group->message(&goc))
     {
       delete group;
       continue;
     }
 
-    QStringList tl = toc.getList(QString("symbols"));
+    QStringList tl = goc.getList(QString("symbols"));
     
-    toc.setCommand(QString("info"));
-    toc.setValue(QString("names"), tl);
-    db->message(&toc);
+    goc.setCommand(QString("info"));
+    goc.setValue(QString("names"), tl);
+    db->message(&goc);
     
-    QHashIterator<QString, Data> it(toc.getDatas());
+    QHashIterator<QString, Data> it(goc.getDatas());
     while (it.hasNext())
     {
       it.next();

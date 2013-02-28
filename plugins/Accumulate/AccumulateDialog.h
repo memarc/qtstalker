@@ -19,53 +19,32 @@
  *  USA.
  */
 
-#ifndef PLUGIN_INDICATOR_GROUP_PAGE_HPP
-#define PLUGIN_INDICATOR_GROUP_PAGE_HPP
+#ifndef PLUGIN_ACCUMULATE_DIALOG_HPP
+#define PLUGIN_ACCUMULATE_DIALOG_HPP
 
 #include <QtGui>
 
+#include "Dialog.h"
 #include "Object.h"
 
-class GroupPage : public QWidget
+class AccumulateDialog : public Dialog
 {
   Q_OBJECT
-
-  signals:
-    void signalSymbol (QString);
   
   public:
-    enum Action
-    {
-      _GROUP_NEW,
-      _GROUP_EDIT,
-      _GROUP_DELETE,
-      _REFRESH
-    };
-
-    GroupPage (QWidget *, QString settingsPath);
-    ~GroupPage ();
-    void createGUI();
-    void createActions ();
+    AccumulateDialog (QHash<QString, void *> objects, QString name);
+    ~AccumulateDialog ();
+    void createTab (QHash<QString, void *>);
+    void setSettings(QString, QString);
+    void settings(QString &, QString &);
+    
+  public slots:
+    void done ();
     void loadSettings ();
     void saveSettings ();
-
-  public slots:
-    void newGroup ();
-    void editGroup ();
-    void deleteGroup ();
-    void rightClick (const QPoint &);
-    void loadGroups ();
-    void selectionChanged ();
-    void itemClicked (QTreeWidgetItem *, int);
-    void groupObjectMessage (ObjectCommand);
-
+  
   protected:
-    QTreeWidget *_nav;
-    QMenu *_menu;
-    QHash<int, QAction *> _actions;
-    QHash<QString, Object *> _groups;
-    QHash<QString, QTreeWidgetItem *> _items;
-    QString _settingsPath;
+    Object *_input;
 };
 
 #endif

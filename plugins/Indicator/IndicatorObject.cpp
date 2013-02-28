@@ -53,8 +53,11 @@ IndicatorObject::~IndicatorObject ()
 {
   clear();
   
-//  if (_widget)
-//    delete _widget;
+  if (_widget)
+  {
+    if (! _widget->parent())
+      delete _widget;
+  }
 }
 
 void
@@ -282,7 +285,7 @@ IndicatorObject::dialog (ObjectCommand *)
 void
 IndicatorObject::dialogDone ()
 {
-  load();
+  loadLocal();
   
   plot();
 
@@ -323,15 +326,18 @@ IndicatorObject::load (ObjectCommand *oc)
     return 0;
   }
 
-  return load();
+  return loadLocal();
 }
 
 int
-IndicatorObject::load ()
+IndicatorObject::loadLocal ()
 {
   QDir dir;
   if (! dir.exists(_indicatorPath))
+  {
+    qDebug() << "IndicatorObject::loadLocal: empty indicator file";
     return 1;
+  }
   
   // setup widget and grid
   if (! _widget)
@@ -394,7 +400,7 @@ IndicatorObject::load ()
     // load settings
     if (! o->message(&toc))
     {
-      qDebug() << "IndicatorObject::load: object message error" << o->name() << toc.command();
+      qDebug() << "IndicatorObject::loadLocal: object message error" << o->name() << toc.command();
       settings->endGroup();
       continue;
     }
@@ -415,7 +421,7 @@ IndicatorObject::load ()
     }
     
     settings->endGroup();
-qDebug() << "IndicatorObject::load: OK" << _order.at(pos) << plugin;
+qDebug() << "IndicatorObject::loadLocal: OK" << _order.at(pos) << plugin;
   }
 
   delete settings;
@@ -428,7 +434,7 @@ qDebug() << "IndicatorObject::load: OK" << _order.at(pos) << plugin;
       continue;
     delete o;
     _objects.remove(oldObjects.at(pos));
-qDebug() << "IndicatorObject::load: removed old object" << o->plugin() << oldObjects.at(pos);
+qDebug() << "IndicatorObject::loadLocal: removed old object" << o->plugin() << oldObjects.at(pos);
   }
 
   return 1;
