@@ -7,5 +7,5 @@ if [ -z "$dxCmd" ] ; then
 else
   $dxCmd misc/doxygen/config.txt
   printf "Done.\n"
-  printf "Now do './configure; sudo make install' to merge the API docs with the Qt help system.\n"
+  printf "Now do './configure; make install' to merge the API docs with the Qt help system.\n"
 fi
