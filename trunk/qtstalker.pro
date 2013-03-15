@@ -95,6 +95,8 @@ message("Operating system: $$MY_OS")
   message("QMAKESPEC: $$QMAKESPEC")
 }
 
+QMAKE_DISTCLEAN += .qmake.cache
+
 TEMPLATE = subdirs
 
 # compile app
