@@ -25,11 +25,11 @@ OBJECTS += ../../src/build/Util.o
 
 
 
-INCLUDEPATH += /usr/local/include/gtk-1.2
-INCLUDEPATH += /usr/local/include/glib-1.2
-INCLUDEPATH += /usr/local/lib/glib/include
+#INCLUDEPATH += /usr/local/include/gtk-1.2
+#INCLUDEPATH += /usr/local/include/glib-1.2
+#INCLUDEPATH += /usr/local/lib/glib/include
 
-LIBS += -L/usr/local/lib -lgtk -lgdk -rdynamic -lgmodule -lglib -ldl -lXext -lX11 -lm
+#LIBS += -L/usr/local/lib -lgtk -lgdk -rdynamic -lgmodule -lglib -ldl -lXext -lX11 -lm
 
 
 
