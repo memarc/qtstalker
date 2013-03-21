@@ -23,6 +23,7 @@
 #include "ta_libc.h"
 #include "MADialog.h"
 #include "Util.h"
+#include <glib.h>
 
 #include <QtDebug>
 
@@ -132,6 +133,9 @@ MAObject::update (ObjectCommand *oc)
   }
 
   QMap<int, Data *> data = toc.map();
+
+
+  GTimer *timer = g_timer_new();
   
   int size = data.size();
   TA_Real input[size];
@@ -173,6 +177,12 @@ MAObject::update (ObjectCommand *oc)
     b->insert(_outputKey, out[outLoop--]);
     _bars.insert(it.key(), b);
   }
+
+  g_timer_stop(timer);
+  gulong ms = 0;
+  gdouble seconds = g_timer_elapsed(timer, &ms);
+  g_print("MAObject::update: time elapsed %g\n", seconds);
+  g_timer_destroy(timer);
   
   return 1;
 }

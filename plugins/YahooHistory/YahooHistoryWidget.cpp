@@ -235,6 +235,8 @@ YahooHistoryWidget::downloadHistory ()
   _downloading = TRUE;
   buttonStatus();
 
+  _timer.start();
+  
   // parse symbol files
   QStringList tl;
   if (_symbolButton)
@@ -324,6 +326,8 @@ YahooHistoryWidget::buttonStatus ()
 void
 YahooHistoryWidget::downloadDone ()
 {
+  qDebug() << "YahooHistoryWidget::downloadDone: time elapsed" << _timer.elapsed();
+  
   _progBar->reset();
   setEnabled(TRUE);
   _downloading = FALSE;
