@@ -70,6 +70,7 @@ class YahooHistoryWidget : public QWidget
     QHash<int, QAction *> _actions;
     QMainWindow *_mw;
     QString _profile;
+    QTime _timer;
 };
 
 #endif
