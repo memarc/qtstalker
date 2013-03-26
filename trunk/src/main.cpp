@@ -25,7 +25,6 @@
 #include <QLocale>
 #include <QtDebug>
 
-#include "../qtstalker_defines.h"
 #include "Util.h"
 #include "OTA.h"
 #include "ObjectCommand.h"
