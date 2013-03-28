@@ -25,9 +25,10 @@
       <file>qtstalker.css</file>
       <file>qtstalker.js</file>
       <file>qtstalker.png</file>
+<!--
       <file>screen-1.png</file>
       <file>screen-2.png</file>
-      <file>*.csv</file>
+-->
       <file>CHANGELOG*</file>
 <!-- Note that no files are yet excluded, so wildcard will suffice. -->
       <file>*.html</file>
