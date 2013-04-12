@@ -48,6 +48,9 @@ SZObject::SZObject (QString profile, QString name)
   _noDecline = 2;
   _coeff = 2.0;
   
+  _ubars = new Bars;
+  _dbars = new Bars;
+  
   _commandList << QString("update");
   _commandList << QString("dialog");
   _commandList << QString("output");
@@ -61,14 +64,15 @@ SZObject::SZObject (QString profile, QString name)
 
 SZObject::~SZObject ()
 {
-  clear();
+  delete _ubars;
+  delete _dbars;
 }
 
 void
 SZObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _ubars->clear();
+  _dbars->clear();
 }
 
 int
@@ -124,8 +128,21 @@ SZObject::update (ObjectCommand *oc)
     return 0;
   }
 
-  QMap<int, Data *> data = toc.map();
-  QList<int> keys = data.keys();
+  Bars *hbars = toc.getBars(_highKey);
+  if (! hbars)
+  {
+    qDebug() << "SZObject::update: invalid high bars" << _highKey;
+    return 0;
+  }
+
+  Bars *lbars = toc.getBars(_lowKey);
+  if (! lbars)
+  {
+    qDebug() << "SZObject::update: invalid low bars" << _lowKey;
+    return 0;
+  }
+
+  QList<int> keys = hbars->_bars.keys();
   
   double uptrend_stop = 0;
   double dntrend_stop = 0;
@@ -158,18 +175,26 @@ SZObject::update (ObjectCommand *oc)
     double dntrend_noise_cnt = 0;
     for (lbloop = lbstart; lbloop < ipos; lbloop++)
     {
-      Data *bar = data.value(keys.at(lbloop));
-      if (! bar)
+      Bar *hbar = hbars->value(keys.at(lbloop));
+      if (! hbar)
         continue;
 
-      Data *pbar = data.value(keys.at(lbloop - 1));
-      if (! pbar)
+      Bar *phbar = hbars->value(keys.at(lbloop - 1));
+      if (! phbar)
+        continue;
+      
+      Bar *lbar = lbars->value(keys.at(lbloop));
+      if (! lbar)
         continue;
 
-      double lo_curr = bar->value(_lowKey).toDouble();
-      double lo_last = pbar->value(_lowKey).toDouble();
-      double hi_curr = bar->value(_highKey).toDouble();
-      double hi_last = pbar->value(_highKey).toDouble();
+      Bar *plbar = lbars->value(keys.at(lbloop - 1));
+      if (! plbar)
+        continue;
+
+      double lo_curr = lbar->v;
+      double lo_last = plbar->v;
+      double hi_curr = hbar->v;
+      double hi_last = phbar->v;
       if (lo_last > lo_curr)
       {
         uptrend_noise_avg += lo_last - lo_curr;
@@ -188,12 +213,16 @@ SZObject::update (ObjectCommand *oc)
     if (dntrend_noise_cnt > 0)
       dntrend_noise_avg /= dntrend_noise_cnt;
 
-    Data *pbar = data.value(keys.at(ipos - 1));
-    if (! pbar)
+    Bar *phbar = hbars->value(keys.at(ipos - 1));
+    if (! phbar)
       continue;
 
-    double lo_last = pbar->value(_lowKey).toDouble();
-    double hi_last = pbar->value(_highKey).toDouble();
+    Bar *plbar = lbars->value(keys.at(ipos - 1));
+    if (! plbar)
+      continue;
+
+    double lo_last = plbar->v;
+    double hi_last = phbar->v;
     uptrend_stop = lo_last - _coeff * uptrend_noise_avg;
     dntrend_stop = hi_last + _coeff * dntrend_noise_avg;
 
@@ -219,10 +248,8 @@ SZObject::update (ObjectCommand *oc)
     old_uptrend_stops[0] = uptrend_stop;
     old_dntrend_stops[0] = dntrend_stop;
 
-    Data *b = new Data;
-    b->insert(_outputUpKey, adjusted_uptrend_stop);
-    b->insert(_outputDownKey, adjusted_dntrend_stop);
-    _bars.insert(keys.at(ipos), b);
+    _ubars->setValue(keys.at(ipos), adjusted_uptrend_stop);
+    _dbars->setValue(keys.at(ipos), adjusted_dntrend_stop);
   }
 
   return 1;
@@ -262,7 +289,8 @@ int
 SZObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_outputUpKey, _ubars);
+  oc->setValue(_outputDownKey, _dbars);
   return 1;
 }
 

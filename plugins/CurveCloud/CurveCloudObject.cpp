@@ -48,7 +48,6 @@ CurveCloudObject::CurveCloudObject (QString profile, QString name)
   _commandList << QString("save");
   _commandList << QString("dialog");
   _commandList << QString("copy");
-  _commandList << QString("output");
   _commandList << QString("set_color");
   _commandList << QString("settings");
 }
@@ -96,12 +95,9 @@ CurveCloudObject::message (ObjectCommand *oc)
       rc = copy(oc);
       break;
     case 10:
-      rc = output(oc);
-      break;
-    case 11:
       rc = setColor(oc);
       break;
-    case 12:
+    case 11:
       rc = settings(oc);
       break;
     default:
@@ -165,10 +161,10 @@ CurveCloudObject::draw (ObjectCommand *oc)
   int x = 0;
   while (x < rect.width() && pos <= end)
   {
-    Data *bar = _bars.value(pos);
+    CloudBar *bar = _bars.value(pos);
     if (bar)
     {
-      toc.setValue(QString("value"), bar->value("b").toDouble());
+      toc.setValue(QString("value"), bar->base);
       if (! plot->message(&toc))
       {
 	qDebug() << "CurveCloudObject::drawCloud: base error";
@@ -176,7 +172,7 @@ CurveCloudObject::draw (ObjectCommand *oc)
       }
       int b = toc.getInt(QString("y"));
       
-      toc.setValue(QString("value"), bar->value("v").toDouble());
+      toc.setValue(QString("value"), bar->value);
       if (! plot->message(&toc))
       {
 	qDebug() << "CurveCloudObject::drawCloud: value error";
@@ -225,22 +221,26 @@ CurveCloudObject::update (ObjectCommand *oc)
   ObjectCommand toc(QString("output"));
   if (! input->message(&toc))
   {
-    qDebug() << "CurveLineObject::update: message error" << input->plugin() << toc.command();
+    qDebug() << "CurveCloudObject::update: message error" << input->plugin() << toc.command();
     return 0;
   }
   
-  QMapIterator<int, Data *> it(toc.map());
+  Bars *vbars = toc.getBars(_valueKey);
+  if (! vbars)
+  {
+    qDebug() << "CurveCloudObject::setInput: invalid value bars" << _valueKey;
+    return 0;
+  }
+  
+  QMapIterator<int, Bar *> it(vbars->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *bar = it.value();
+    Bar *bar = it.value();
 
-    if (! bar->contains(_valueKey))
-      continue;
-    
-    Data *nbar = new Data;
-    nbar->insert("b", 0);
-    nbar->insert("v", bar->value(_valueKey));
+    CloudBar *nbar = new CloudBar;
+    nbar->base = 0;
+    nbar->value = bar->v;
     _bars.insert(it.key(), nbar);
   }
   
@@ -253,24 +253,28 @@ CurveCloudObject::update (ObjectCommand *oc)
   
   if (! input->message(&toc))
   {
-    qDebug() << "CurveLineObject::update: message error" << input->plugin() << toc.command();
+    qDebug() << "CurveCloudObject::update: message error" << input->plugin() << toc.command();
+    return 0;
+  }
+
+  Bars *bbars = toc.getBars(_baseKey);
+  if (! bbars)
+  {
+    qDebug() << "CurveCloudObject::setInput: invalid base bars" << _baseKey;
     return 0;
   }
   
-  QMapIterator<int, Data *> it2(toc.map());
+  QMapIterator<int, Bar *> it2(bbars->_bars);
   while (it2.hasNext())
   {
     it2.next();
-    Data *bar = it2.value();
+    Bar *bar = it2.value();
 
-    if (! bar->contains(_baseKey))
-      continue;
-    
-    Data *nbar = _bars.value(it2.key());
+    CloudBar *nbar = _bars.value(it2.key());
     if (! nbar)
       continue;
     
-    nbar->insert("b", bar->value(_baseKey));
+    nbar->base = bar->v;
   }
 
   // add to plot
@@ -291,17 +295,17 @@ CurveCloudObject::info (ObjectCommand *oc)
   // get index
   int index = oc->getInt(QString("index"));
 
-  Data *bar = _bars.value(index);
+  CloudBar *bar = _bars.value(index);
   if (! bar)
     return 0;
 
   Data info;
   Util strip;
   QString ts;
-  strip.strip(bar->value("v").toDouble(), 4, ts);
+  strip.strip(bar->value, 4, ts);
   info.insert(_label + QString(":H"), ts);
 
-  strip.strip(bar->value("b").toDouble(), 4, ts);
+  strip.strip(bar->base, 4, ts);
   info.insert(_label + QString(":L"), ts);
   
   oc->setValue(QString("info"), info);
@@ -326,14 +330,14 @@ CurveCloudObject::highLowRange (ObjectCommand *oc)
 
   ObjectCommand toc(QString("set_high_low"));
   
-  QMapIterator<int, Data *> it(_bars);
+  QMapIterator<int, CloudBar *> it(_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *b = it.value();
+    CloudBar *b = it.value();
     
-    double v = b->value("v").toDouble();
-    double h = b->value("b").toDouble();
+    double v = b->value;
+    double h = b->base;
     double l = h;
     
     if (v > h)
@@ -356,12 +360,12 @@ CurveCloudObject::scalePoint (ObjectCommand *oc)
 {
   int index = oc->getInt(QString("index"));
   
-  Data *b = _bars.value(index);
+  CloudBar *b = _bars.value(index);
   if (! b)
     return 0;
 
   oc->setValue(QString("color"), _color);
-  oc->setValue(QString("value"), b->value("v").toDouble());
+  oc->setValue(QString("value"), b->value);
   
   return 1;
 }
@@ -389,7 +393,7 @@ CurveCloudObject::startEndIndex (int &start, int &end)
   start = 0;
   end = 0;
   
-  QMapIterator<int, Data *> it(_bars);
+  QMapIterator<int, CloudBar *> it(_bars);
   it.toFront();
   if (! it.hasNext())
     return 0;
@@ -475,7 +479,7 @@ int
 CurveCloudObject::copy (ObjectCommand *oc)
 {
   QString key("input");
-  Object *input = (Object *) oc->getObject(key);
+  CurveCloudObject *input = (CurveCloudObject *) oc->getObject(key);
   if (! input)
   {
     qDebug() << "CurveCloudObject::copy: invalid" << key;
@@ -488,7 +492,7 @@ CurveCloudObject::copy (ObjectCommand *oc)
     return 0;
   }
 
-  key = QString("output");
+  key = QString("settings");
   ObjectCommand toc(key);
   if (! input->message(&toc))
   {
@@ -507,15 +511,15 @@ CurveCloudObject::copy (ObjectCommand *oc)
   _color = toc.getColor(QString("color"));
   _plotObject = toc.getString(QString("plot_object"));
   
-  QMapIterator<int, Data *> it(toc.map());
+  QMapIterator<int, CloudBar *> it(input->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *b = it.value();
+    CloudBar *b = it.value();
     
-    Data *nb = new Data;
-    nb->insert("b", b->value("b"));
-    nb->insert("v", b->value("v"));
+    CloudBar *nb = new CloudBar;
+    nb->base = b->base;
+    nb->value = b->value;
     _bars.insert(it.key(), nb);
   }
   
@@ -523,27 +527,8 @@ CurveCloudObject::copy (ObjectCommand *oc)
 }
 
 int
-CurveCloudObject::output (ObjectCommand *oc)
-{
-  oc->setMap(_bars);
-  settings(oc);
-  return 1;
-}
-
-int
 CurveCloudObject::setColor (ObjectCommand *oc)
 {
-/*
-  int index = oc->getInt(QString("index"));
-  QColor color = oc->getColor(QString("color"));
-  
-  Data *bar = _bars.value(index);
-  if (! bar)
-    return 0;
-  
-  bar->color = color;
-*/
-
   _color = oc->getColor(QString("color"));
   return 1;
 }

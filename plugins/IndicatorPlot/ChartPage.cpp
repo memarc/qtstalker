@@ -209,8 +209,8 @@ ChartPage::addToGroup ()
 					0,
 					FALSE,
 					&ok,
-					0,
 					0);
+
   if (group.isEmpty())
   {
     delete db;

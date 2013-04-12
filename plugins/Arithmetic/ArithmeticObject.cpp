@@ -39,6 +39,8 @@ ArithmeticObject::ArithmeticObject (QString profile, QString name)
   _input2Key = QString("C");
   _hasOutput = TRUE;
   
+  _bars = new Bars;
+  
   _commandList << QString("update");
   _commandList << QString("ops");
   _commandList << QString("dialog");
@@ -55,14 +57,13 @@ ArithmeticObject::ArithmeticObject (QString profile, QString name)
 
 ArithmeticObject::~ArithmeticObject ()
 {
-  clear();
+  delete _bars;
 }
 
 void
 ArithmeticObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _bars->clear();
 }
 
 int
@@ -129,7 +130,13 @@ ArithmeticObject::update (ObjectCommand *oc)
     qDebug() << "ArithmeticObject::update: message error" << input->plugin() << toc.command();
     return 0;
   }
-  QMap<int, Data *> in = toc.map();
+
+  Bars *in = toc.getBars(_inputKey);
+  if (! in)
+  {
+    qDebug() << "ArithmeticObject::update: invalid input bars" << _inputKey;
+    return 0;
+  }
   
   // get input2 bars
   if (! input2->message(&toc))
@@ -137,7 +144,13 @@ ArithmeticObject::update (ObjectCommand *oc)
     qDebug() << "ArithmeticObject::update: message error" << input2->plugin() << toc.command();
     return 0;
   }
-  QMap<int, Data *> in2 = toc.map();
+
+  Bars *in2 = toc.getBars(_input2Key);
+  if (! in2)
+  {
+    qDebug() << "ArithmeticObject::update: invalid input2 bars" << _input2Key;
+    return 0;
+  }
 
   switch (_op)
   {
@@ -161,117 +174,68 @@ ArithmeticObject::update (ObjectCommand *oc)
 }
 
 int
-ArithmeticObject::add (QMap<int, Data *> &in, QMap<int, Data *> &in2)
+ArithmeticObject::add (Bars *in, Bars *in2)
 {
-  QList<int> keys = in.keys();
+  QList<int> keys = in->_bars.keys();
 
   for (int pos = 0; pos < keys.size(); pos++)
   {
-    Data *d = in.value(keys.at(pos));
-    
-    if (! d->contains(_inputKey))
+    Bar *d = in->_bars.value(keys.at(pos));
+    Bar *d2 = in2->_bars.value(keys.at(pos));
+    if (! d2)
       continue;
-    double v = d->value(_inputKey).toDouble();
-    
-    d = in2.value(keys.at(pos));
-    if (! d)
-      continue;
-    
-    if (! d->contains(_input2Key))
-      continue;
-    double v2 = d->value(_input2Key).toDouble();
-qDebug() << "ArithmeticObject::add" << v << v2;
-
-    d = new Data;
-    d->insert(_outputKey, QVariant(v + v2));
-    _bars.insert(keys.at(pos), d);
+    _bars->setValue(keys.at(pos), (d->v + d2->v));
   }
   
   return 1;
 }
 
 int
-ArithmeticObject::div (QMap<int, Data *> &in, QMap<int, Data *> &in2)
+ArithmeticObject::div (Bars *in, Bars *in2)
 {
-  QList<int> keys = in.keys();
+  QList<int> keys = in->_bars.keys();
 
   for (int pos = 0; pos < keys.size(); pos++)
   {
-    Data *d = in.value(keys.at(pos));
-    
-    if (! d->contains(_inputKey))
+    Bar *d = in->_bars.value(keys.at(pos));
+    Bar *d2 = in2->_bars.value(keys.at(pos));
+    if (! d2)
       continue;
-    double v = d->value(_inputKey).toDouble();
-    
-    d = in2.value(keys.at(pos));
-    if (! d)
-      continue;
-    
-    if (! d->contains(_input2Key))
-      continue;
-    double v2 = d->value(_input2Key).toDouble();
-
-    d = new Data;
-    d->insert(_outputKey, QVariant(v / v2));
-    _bars.insert(keys.at(pos), d);
+    _bars->setValue(keys.at(pos), (d->v / d2->v));
   }
   
   return 1;
 }
 
 int
-ArithmeticObject::mult (QMap<int, Data *> &in, QMap<int, Data *> &in2)
+ArithmeticObject::mult (Bars *in, Bars *in2)
 {
-  QList<int> keys = in.keys();
+  QList<int> keys = in->_bars.keys();
 
   for (int pos = 0; pos < keys.size(); pos++)
   {
-    Data *d = in.value(keys.at(pos));
-    
-    if (! d->contains(_inputKey))
+    Bar *d = in->_bars.value(keys.at(pos));
+    Bar *d2 = in2->_bars.value(keys.at(pos));
+    if (! d2)
       continue;
-    double v = d->value(_inputKey).toDouble();
-    
-    d = in2.value(keys.at(pos));
-    if (! d)
-      continue;
-    
-    if (! d->contains(_input2Key))
-      continue;
-    double v2 = d->value(_input2Key).toDouble();
-
-    d = new Data;
-    d->insert(_outputKey, QVariant(v * v2));
-    _bars.insert(keys.at(pos), d);
+    _bars->setValue(keys.at(pos), (d->v * d2->v));
   }
   
   return 1;
 }
 
 int
-ArithmeticObject::sub (QMap<int, Data *> &in, QMap<int, Data *> &in2)
+ArithmeticObject::sub (Bars *in, Bars *in2)
 {
-  QList<int> keys = in.keys();
+  QList<int> keys = in->_bars.keys();
 
   for (int pos = 0; pos < keys.size(); pos++)
   {
-    Data *d = in.value(keys.at(pos));
-    
-    if (! d->contains(_inputKey))
+    Bar *d = in->_bars.value(keys.at(pos));
+    Bar *d2 = in2->_bars.value(keys.at(pos));
+    if (! d2)
       continue;
-    double v = d->value(_inputKey).toDouble();
-    
-    d = in2.value(keys.at(pos));
-    if (! d)
-      continue;
-    
-    if (! d->contains(_input2Key))
-      continue;
-    double v2 = d->value(_input2Key).toDouble();
-
-    d = new Data;
-    d->insert(_outputKey, QVariant(v - v2));
-    _bars.insert(keys.at(pos), d);
+    _bars->setValue(keys.at(pos), (d->v - d2->v));
   }
   
   return 1;
@@ -311,7 +275,7 @@ int
 ArithmeticObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_outputKey, _bars);
   return 1;
 }
 

@@ -24,7 +24,7 @@
 #include "ObjectCommand.h"
 #include "PlotWidgetStatus.h"
 #include "../../pics/delete.xpm"
-#include "../../pics/edit.xpm"
+//#include "../../pics/edit.xpm"
 #include "../../pics/grid.xpm"
 #include "../../pics/date.xpm"
 #include "../../pics/about.xpm"

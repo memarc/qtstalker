@@ -23,10 +23,10 @@
 #define PLUGIN_RSI_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "RSIDialog.h"
+#include "Bars.h"
 
 class RSIObject : public Object
 {
@@ -49,7 +49,7 @@ class RSIObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _inputKey;
     QString _outputKey;

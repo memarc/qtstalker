@@ -41,7 +41,6 @@ ObjectCommand::clear ()
 {
   _command.clear();
   _msg.clear();
-  clearMap();
   clearValues();
 }
 
@@ -69,28 +68,6 @@ ObjectCommand::msg ()
   return _msg;
 }
 
-// ********************************
-//          map
-// *********************************
-
-void
-ObjectCommand::clearMap ()
-{
-  _map.clear();
-}
-
-void
-ObjectCommand::setMap (QMap<int, Data *> &d)
-{
-  _map = d;
-}
-
-QMap<int, Data *>
-ObjectCommand::map ()
-{
-  return _map;
-}
-
 // **************************************
 //              values
 // **************************************
@@ -109,6 +86,7 @@ ObjectCommand::clearValues ()
   _bools.clear();
   _icons.clear();
   _fonts.clear();
+  _bars.clear();
 }
 
 void
@@ -175,6 +153,12 @@ void
 ObjectCommand::setValue (QString k, QFont d)
 {
   _fonts.insert(k, d);
+}
+
+void
+ObjectCommand::setValue (QString k, Bars *d)
+{
+  _bars.insert(k, d);
 }
 
 int
@@ -267,3 +251,8 @@ ObjectCommand::setDatas (QHash<QString, Data> d)
   _datas = d;
 }
 
+Bars *
+ObjectCommand::getBars (QString k)
+{
+  return _bars.value(k);
+}

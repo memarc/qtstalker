@@ -43,6 +43,8 @@ CompareValuesObject::CompareValuesObject (QString profile, QString name)
   _constantValue = 0;
   _hasOutput = TRUE;
   
+  _bars = new Bars;
+  
   _commandList << QString("update");
   _commandList << QString("ops");
   _commandList << QString("dialog");
@@ -63,14 +65,13 @@ CompareValuesObject::CompareValuesObject (QString profile, QString name)
 
 CompareValuesObject::~CompareValuesObject ()
 {
-  clear();
+  delete _bars;
 }
 
 void
 CompareValuesObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _bars->clear();
 }
 
 int
@@ -147,73 +148,71 @@ CompareValuesObject::update (ObjectCommand *oc)
     qDebug() << "CompareValuesObject::update: message error" << input->plugin() << toc.command();
     return 0;
   }
-  QMap<int, Data *> in = toc.map();
-  
-  // get input2 bars
-  QMap<int, Data *> in2;
-  if (! _constant)
+
+  Bars *ibars = toc.getBars(_inputKey);
+  if (! ibars)
   {
-    if (! input2->message(&toc))
-    {
-      qDebug() << "CompareValuesObject::update: message error" << input2->plugin() << toc.command();
-      return 0;
-    }
-    
-    in2 = toc.map();
+    qDebug() << "CompareValuesObject::update: invalid input bars" << _inputKey;
+    return 0;
   }
   
-  QList<int> keys = in.keys();
+  // get input2 bars
+  Bars *ibars2 = 0;
+  if (! _constant)
+  {
+    ibars2 = toc.getBars(_input2Key);
+    if (! ibars2)
+    {
+      qDebug() << "CompareValuesObject::update: invalid input2 bars" << _input2Key;
+      return 0;
+    }
+  }
+  
+  QList<int> keys = ibars->_bars.keys();
+  
   for (int pos = 0; pos < keys.size(); pos++)
   {
-    Data *r = new Data;
-    r->insert(_outputKey, QVariant(0));
-    _bars.insert(keys.at(pos), r);
+    _bars->setValue(keys.at(pos), 0);
     
-    Data *d = in.value(keys.at(pos - _offset));
+    Bar *d = ibars->_bars.value(keys.at(pos - _offset));
     if (! d)
       continue;
-    
-    if (! d->contains(_inputKey))
-      continue;
-    double v = d->value(_inputKey).toDouble();
+    double v = d->v;
     
     double v2 = _constantValue;
     if (! _constant)
     {
-      d = in2.value(keys.at(pos - _offset2));
+      d = ibars2->_bars.value(keys.at(pos - _offset2));
       if (! d)
         continue;
-    
-      if (! d->contains(_input2Key))
-        continue;
-      v2 = d->value(_input2Key).toDouble();
+      v2 = d->v;
     }
     
     switch (_op)
     {
       case 0:
 	if (v < v2)
-	  r->insert(_outputKey, QVariant(1));
+          _bars->setValue(keys.at(pos), 1);
 	break;
       case 1:
 	if (v <= v2)
-	  r->insert(_outputKey, QVariant(1));
+          _bars->setValue(keys.at(pos), 1);
 	break;
       case 2:
 	if (v == v2)
-	  r->insert(_outputKey, QVariant(1));
+          _bars->setValue(keys.at(pos), 1);
 	break;
       case 3:
 	if (v != v2)
-	  r->insert(_outputKey, QVariant(1));
+          _bars->setValue(keys.at(pos), 1);
 	break;
       case 4:
 	if (v >= v2)
-	  r->insert(_outputKey, QVariant(1));
+          _bars->setValue(keys.at(pos), 1);
 	break;
       case 5:
 	if (v > v2)
-	  r->insert(_outputKey, QVariant(1));
+          _bars->setValue(keys.at(pos), 1);
 	break;
       default:
 	break;
@@ -258,7 +257,7 @@ int
 CompareValuesObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_outputKey, _bars);
   return 1;
 }
 
@@ -315,20 +314,14 @@ CompareValuesObject::value (ObjectCommand *oc)
   QString key("index");
   int index = oc->getInt(key);
   
-  Data *d = _bars.value(index);
+  Bar *d = _bars->value(index);
   if (! d)
   {
     qDebug() << "CompareValuesObject::save: invalid" << key << index;
     return 0;
   }
   
-  if (! d->contains(_outputKey))
-  {
-    qDebug() << "CompareValuesObject::save: empty value";
-    return 0;
-  }
-  
-  oc->setValue(QString("value"), d->value(_outputKey).toDouble());
+  oc->setValue(QString("value"), d->v);
   
   return 1;
 }
@@ -338,24 +331,8 @@ CompareValuesObject::startEndIndex (ObjectCommand *oc)
 {
   int start = 0;
   int end = 0;
-  
-  QMapIterator<int, Data *> it(_bars);
-  it.toFront();
-  if (it.hasNext())
-  {
-    it.next();
-    start = it.key();
-  }
-  
-  it.toBack();
-  if (it.hasPrevious())
-  {
-    it.previous();
-    end = it.key();
-  }
-  
+  _bars->startEndIndex(start, end);
   oc->setValue(QString("start"), start);
   oc->setValue(QString("end"), end);
-  
   return 1;
 }

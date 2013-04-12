@@ -30,6 +30,12 @@
 #include "Object.h"
 #include "CurveLineDialog.h"
 
+typedef struct
+{
+  QColor color;
+  double value;
+  
+} LineBar;
 
 class CurveLineObject : public Object
 {
@@ -49,13 +55,13 @@ class CurveLineObject : public Object
     int save (ObjectCommand *);
     int dialog (ObjectCommand *);
     int copy (ObjectCommand *);
-    int output (ObjectCommand *);
     int setColor (ObjectCommand *);
     int settings (ObjectCommand *);
     
     int startEndIndex (int &start, int &end);
     int drawLine (QPainter *, Object *, int pos, int end, int width);
     int drawDot (QPainter *, Object *, int pos, int end, int width);
+    QMap<int, LineBar *> _bars;
     
   public slots:
     int message (ObjectCommand *);
@@ -64,7 +70,6 @@ class CurveLineObject : public Object
   private:
     QStringList _commandList;
     QStringList _styles;
-    QMap<int, Data *> _bars;
     int _penWidth;
     QString _style;
     QString _label;

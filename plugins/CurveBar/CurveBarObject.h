@@ -31,6 +31,13 @@
 #include "CurveBarDialog.h"
 
 
+typedef struct
+{
+  QColor color;
+  float value;
+  
+} BVBar;
+
 class CurveBarObject : public Object
 {
   Q_OBJECT
@@ -49,11 +56,11 @@ class CurveBarObject : public Object
     int save (ObjectCommand *);
     int dialog (ObjectCommand *);
     int copy (ObjectCommand *);
-    int output (ObjectCommand *);
     int setColor (ObjectCommand *);
     int settings (ObjectCommand *);
     
     int startEndIndex (int &start, int &end);
+    QMap<int, BVBar *> _bars;
 
   public slots:
     int message (ObjectCommand *);
@@ -61,7 +68,6 @@ class CurveBarObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
     int _penWidth;
     QColor _color;
     QString _label;

@@ -45,6 +45,9 @@ AROONObject::AROONObject (QString profile, QString name)
   _highKey = QString("H");
   _lowKey = QString("L");
   
+  _ubars = new Bars;
+  _dbars = new Bars;
+  
   _commandList << QString("update");
   _commandList << QString("dialog");
   _commandList << QString("output");
@@ -55,14 +58,15 @@ AROONObject::AROONObject (QString profile, QString name)
 
 AROONObject::~AROONObject ()
 {
-  clear();
+  delete _ubars;
+  delete _dbars;
 }
 
 void
 AROONObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _ubars->clear();
+  _dbars->clear();
 }
 
 int
@@ -118,9 +122,23 @@ AROONObject::update (ObjectCommand *oc)
     return 0;
   }
 
-  QMap<int, Data *> data = toc.map();
+  Bars *hbars = toc.getBars(_highKey);
+  if (! hbars)
+  {
+    qDebug() << "AROONObject::update: invalid high bars" << _highKey;
+    return 0;
+  }
+
+  Bars *lbars = toc.getBars(_lowKey);
+  if (! lbars)
+  {
+    qDebug() << "AROONObject::update: invalid low bars" << _lowKey;
+    return 0;
+  }
   
-  int size = data.size();
+  QList<int> keys = hbars->_bars.keys();
+  int size = keys.size();
+
   TA_Real high[size];
   TA_Real low[size];
   TA_Real out[size];
@@ -128,19 +146,18 @@ AROONObject::update (ObjectCommand *oc)
   TA_Integer outBeg;
   TA_Integer outNb;
   int dpos = 0;
-  QMapIterator<int, Data *> it(data);
-  while (it.hasNext())
+  for (int pos = 0; pos < keys.size(); pos++)
   {
-    it.next();
-    Data *d = it.value();
-    
-    if (! d->contains(_highKey))
+    Bar *hbar = hbars->value(keys.at(pos));
+    if (! hbar)
       continue;
-    if (! d->contains(_lowKey))
+
+    Bar *lbar = lbars->value(keys.at(pos));
+    if (! lbar)
       continue;
-    
-    high[dpos] = (TA_Real) d->value(_highKey).toDouble();
-    low[dpos++] = (TA_Real) d->value(_lowKey).toDouble();
+
+    high[dpos] = (TA_Real) hbar->v;
+    low[dpos++] = (TA_Real) lbar->v;
   }
   
   TA_RetCode rc = TA_AROON(0,
@@ -160,14 +177,13 @@ AROONObject::update (ObjectCommand *oc)
   }
 
   int outLoop = outNb - 1;
-  it.toBack();
-  while (it.hasPrevious() && outLoop > -1)
+  int pos = keys.size() - 1;
+  while (pos > -1 && outLoop > -1)
   {
-    it.previous();
-    Data *b = new Data;
-    b->insert(_outputDownKey, out[outLoop]);
-    b->insert(_outputUpKey, out2[outLoop--]);
-    _bars.insert(it.key(), b);
+    _dbars->setValue(keys.at(pos), (double) out[outLoop]);
+    _ubars->setValue(keys.at(pos), (double) out2[outLoop]);
+    pos--;
+    outLoop--;
   }
   
   return 1;
@@ -207,7 +223,8 @@ int
 AROONObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_outputUpKey, _ubars);
+  oc->setValue(_outputDownKey, _dbars);
   return 1;
 }
 

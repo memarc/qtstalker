@@ -23,10 +23,10 @@
 #define PLUGIN_CURVE_COLOR_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "CurveColorDialog.h"
+
 
 class CurveColorObject : public Object
 {

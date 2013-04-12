@@ -31,6 +31,17 @@
 #include "CurveCandleDialog.h"
 
 
+typedef struct
+{
+  bool fill;
+  QColor color;
+  double open;
+  double high;
+  double low;
+  double close;
+  
+} CandleBar;
+
 class CurveCandleObject : public Object
 {
   Q_OBJECT
@@ -49,11 +60,11 @@ class CurveCandleObject : public Object
     int save (ObjectCommand *);
     int dialog (ObjectCommand *);
     int copy (ObjectCommand *);
-    int output (ObjectCommand *);
     int setColor (ObjectCommand *);
     int settings (ObjectCommand *);
     
     int startEndIndex (int &start, int &end);
+    QMap<int, CandleBar *> _bars;
     
   public slots:
     int message (ObjectCommand *);
@@ -61,7 +72,6 @@ class CurveCandleObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
     int _penWidth;
     QString _inputObject;
     QString _openKey;

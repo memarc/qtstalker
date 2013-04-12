@@ -23,10 +23,10 @@
 #define PLUGIN_MOM_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "MOMDialog.h"
+#include "Bars.h"
 
 class MOMObject : public Object
 {
@@ -49,7 +49,7 @@ class MOMObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _inputKey;
     QString _outputKey;

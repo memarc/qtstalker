@@ -23,10 +23,10 @@
 #define PLUGIN_MACD_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "MACDDialog.h"
+#include "Bars.h"
 
 class MACDObject : public Object
 {
@@ -50,7 +50,9 @@ class MACDObject : public Object
   private:
     QStringList _commandList;
     QStringList _maList;
-    QMap<int, Data *> _bars;
+    Bars *_mbars;
+    Bars *_sbars;
+    Bars *_hbars;
     QString _inputObject;
     QString _inputKey;
     QString _slowMAType;

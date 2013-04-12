@@ -26,6 +26,7 @@
 
 #include "PlotWidgetDateTick.h"
 #include "XMap.h"
+#include "Bars.h"
 
 class PlotWidgetDate : public QWidget
 {
@@ -35,7 +36,7 @@ class PlotWidgetDate : public QWidget
     PlotWidgetDate (QWidget *, XMap *);
     ~PlotWidgetDate ();
     void clear ();
-    void setDates (QMap<int, Data *> &, QString dateKey);
+    void setDates (Bars *, QString dateKey);
     void setBackgroundColor (QColor);
     QColor backgroundColor ();
     void setColor (QColor);

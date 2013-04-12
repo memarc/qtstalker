@@ -23,10 +23,10 @@
 #define PLUGIN_HT_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "HTDialog.h"
+#include "Bars.h"
 
 class HTObject : public Object
 {
@@ -50,7 +50,7 @@ class HTObject : public Object
   private:
     QStringList _commandList;
     QStringList _methodList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _inputKey;
     QString _outputKey;

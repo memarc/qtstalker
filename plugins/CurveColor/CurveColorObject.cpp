@@ -125,15 +125,20 @@ CurveColorObject::update (ObjectCommand *oc)
   toc.setCommand(QString("set_color"));
   toc.setValue(QString("color"), _color);
   
-  QMapIterator<int, Data *> it(toc.map());
+  Bars *ibars = toc.getBars(_inputKey);
+  if (! ibars)
+  {
+    qDebug() << "CurveColorObject::update: invalid input bars" << _inputKey;
+    return 0;
+  }
+  
+  QMapIterator<int, Bar *> it(ibars->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *d = it.value();
+    Bar *d = it.value();
     
-    if (! d->contains(_inputKey))
-      continue;
-    double v = d->value(_inputKey).toDouble();
+    double v = d->v;
     
     bool flag = FALSE;
     switch (_op)

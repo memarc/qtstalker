@@ -36,6 +36,8 @@ AccumulateObject::AccumulateObject (QString profile, QString name)
   _inputKey = QString("C");
   _hasOutput = TRUE;
   
+  _bars = new Bars;
+  
   _commandList << QString("update");
   _commandList << QString("dialog");
   _commandList << QString("output");
@@ -46,14 +48,13 @@ AccumulateObject::AccumulateObject (QString profile, QString name)
 
 AccumulateObject::~AccumulateObject ()
 {
-  clear();
+  delete _bars;
 }
 
 void
 AccumulateObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _bars->clear();
 }
 
 int
@@ -108,21 +109,22 @@ AccumulateObject::update (ObjectCommand *oc)
     qDebug() << "AccumulateObject::update: message error" << input->plugin() << toc.command();
     return 0;
   }
+
+  Bars *ibars = toc.getBars(_inputKey);
+  if (! ibars)
+  {
+    qDebug() << "AccumulateObject::update: invalid input bars" << _inputKey;
+    return 0;
+  }
   
   double accum = 0;
-  QMapIterator<int, Data *> it(toc.map());
+  QMapIterator<int, Bar *> it(ibars->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *d = it.value();
-    
-    if (! d->contains(_inputKey))
-      continue;
-    accum += d->value(_inputKey).toDouble();
-    
-    d = new Data;
-    d->insert(_outputKey, QVariant(accum));
-    _bars.insert(it.key(), d);
+    Bar *d = it.value();
+    accum += d->v;
+    _bars->setValue(it.key(), accum);
   }
   
   return 1;
@@ -162,7 +164,7 @@ int
 AccumulateObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_outputKey, _bars);
   return 1;
 }
 

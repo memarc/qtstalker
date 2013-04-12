@@ -23,10 +23,10 @@
 #define PLUGIN_BBANDS_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "BBANDSDialog.h"
+#include "Bars.h"
 
 class BBANDSObject : public Object
 {
@@ -50,7 +50,9 @@ class BBANDSObject : public Object
   private:
     QStringList _commandList;
     QStringList _maList;
-    QMap<int, Data *> _bars;
+    Bars *_uband;
+    Bars *_mband;
+    Bars *_lband;
     QString _inputObject;
     QString _inputKey;
     QString _outputUKey;

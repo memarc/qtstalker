@@ -45,6 +45,8 @@ ADXRObject::ADXRObject (QString profile, QString name)
   _lowKey = QString("L");
   _closeKey = QString("C");
   
+  _bars = new Bars;
+  
   _commandList << QString("update");
   _commandList << QString("dialog");
   _commandList << QString("output");
@@ -55,14 +57,13 @@ ADXRObject::ADXRObject (QString profile, QString name)
 
 ADXRObject::~ADXRObject ()
 {
-  clear();
+  delete _bars;
 }
 
 void
 ADXRObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _bars->clear();
 }
 
 int
@@ -118,9 +119,29 @@ ADXRObject::update (ObjectCommand *oc)
     return 0;
   }
 
-  QMap<int, Data *> data = toc.map();
-  
-  int size = data.size();
+  Bars *hbars = toc.getBars(_highKey);
+  if (! hbars)
+  {
+    qDebug() << "ADXRObject::update: invalid high bars" << _highKey;
+    return 0;
+  }
+
+  Bars *lbars = toc.getBars(_lowKey);
+  if (! lbars)
+  {
+    qDebug() << "ADXRObject::update: invalid low bars" << _lowKey;
+    return 0;
+  }
+
+  Bars *cbars = toc.getBars(_closeKey);
+  if (! cbars)
+  {
+    qDebug() << "ADXRObject::update: invalid close bars" << _closeKey;
+    return 0;
+  }
+
+  QList<int> keys = cbars->_bars.keys();
+  int size = keys.size();
   TA_Real high[size];
   TA_Real low[size];
   TA_Real close[size];
@@ -128,22 +149,23 @@ ADXRObject::update (ObjectCommand *oc)
   TA_Integer outBeg;
   TA_Integer outNb;
   int dpos = 0;
-  QMapIterator<int, Data *> it(data);
-  while (it.hasNext())
+  for (int pos = 0; pos < keys.size(); pos++)
   {
-    it.next();
-    Data *d = it.value();
+    Bar *hbar = hbars->value(keys.at(pos));
+    if (! hbar)
+      continue;
+
+    Bar *lbar = lbars->value(keys.at(pos));
+    if (! lbar)
+      continue;
+
+    Bar *cbar = cbars->value(keys.at(pos));
+    if (! cbar)
+      continue;
     
-    if (! d->contains(_highKey))
-      continue;
-    if (! d->contains(_lowKey))
-      continue;
-    if (! d->contains(_closeKey))
-      continue;
-    
-    high[dpos] = (TA_Real) d->value(_highKey).toDouble();
-    low[dpos] = (TA_Real) d->value(_lowKey).toDouble();
-    close[dpos++] = (TA_Real) d->value(_closeKey).toDouble();
+    high[dpos] = (TA_Real) hbar->v;
+    low[dpos] = (TA_Real) lbar->v;
+    close[dpos++] = (TA_Real) cbar->v;
   }
   
   TA_RetCode rc = TA_ADXR(0,
@@ -163,13 +185,11 @@ ADXRObject::update (ObjectCommand *oc)
   }
 
   int outLoop = outNb - 1;
-  it.toBack();
-  while (it.hasPrevious() && outLoop > -1)
+  int pos = keys.size() - 1;
+  while (pos > -1 && outLoop > -1)
   {
-    it.previous();
-    Data *b = new Data;
-    b->insert(_outputKey, out[outLoop--]);
-    _bars.insert(it.key(), b);
+    _bars->setValue(keys.at(pos), (double) out[outLoop--]);
+    pos--;
   }
   
   return 1;
@@ -209,7 +229,7 @@ int
 ADXRObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_outputKey, _bars);
   return 1;
 }
 

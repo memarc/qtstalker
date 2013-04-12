@@ -38,6 +38,8 @@ FIObject::FIObject (QString profile, QString name)
   _closeKey = QString("C");
   _volumeKey = QString("V");
   
+  _bars = new Bars;
+  
   _commandList << QString("update");
   _commandList << QString("dialog");
   _commandList << QString("output");
@@ -48,14 +50,13 @@ FIObject::FIObject (QString profile, QString name)
 
 FIObject::~FIObject ()
 {
-  clear();
+  delete _bars;
 }
 
 void
 FIObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _bars->clear();
 }
 
 int
@@ -111,29 +112,41 @@ FIObject::update (ObjectCommand *oc)
     return 0;
   }
 
-  Data *pbar = 0;
-  QMapIterator<int, Data *> it(toc.map());
-  while (it.hasNext())
+  Bars *cbars = toc.getBars(_closeKey);
+  if (! cbars)
   {
-    it.next();
-    Data *d = it.value();
+    qDebug() << "FIObject::update: invalid close bars" << _closeKey;
+    return 0;
+  }
 
-    if (! d->contains(_closeKey))
+  Bars *vbars = toc.getBars(_volumeKey);
+  if (! vbars)
+  {
+    qDebug() << "FIObject::update: invalid volume bars" << _volumeKey;
+    return 0;
+  }
+
+  QList<int> keys = cbars->_bars.keys();
+  
+  Bar *pcbar = 0;
+  for (int pos = 0; pos < keys.size(); pos++)
+  {
+    Bar *cbar = cbars->value(keys.at(pos));
+    if (! cbar)
       continue;
-    if (! d->contains(_volumeKey))
+
+    Bar *vbar = vbars->value(keys.at(pos));
+    if (! vbar)
       continue;
     
-    if (pbar)
+    if (pcbar)
     {
-      double cdiff = d->value(_closeKey).toDouble() - pbar->value(_closeKey).toDouble();
-      double force = d->value(_volumeKey).toDouble() * cdiff;
-    
-      Data *b = new Data;
-      b->insert(_outputKey, force);
-      _bars.insert(it.key(), b);
+      double cdiff = cbar->v - pcbar->v;
+      double force = vbar->v * cdiff;
+      _bars->setValue(keys.at(pos), force);
     }
 
-    pbar = d;
+    pcbar = cbar;
   }
   
   return 1;
@@ -173,7 +186,7 @@ int
 FIObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_outputKey, _bars);
   return 1;
 }
 

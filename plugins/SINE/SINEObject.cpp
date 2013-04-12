@@ -43,6 +43,9 @@ SINEObject::SINEObject (QString profile, QString name)
   _inputObject = QString("symbol");
   _inputKey = QString("C");
   
+  _sine = new Bars;
+  _lead = new Bars;
+  
   _commandList << QString("update");
   _commandList << QString("dialog");
   _commandList << QString("output");
@@ -53,14 +56,15 @@ SINEObject::SINEObject (QString profile, QString name)
 
 SINEObject::~SINEObject ()
 {
-  clear();
+  delete _sine;
+  delete _lead;
 }
 
 void
 SINEObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _sine->clear();
+  _lead->clear();
 }
 
 int
@@ -116,22 +120,27 @@ SINEObject::update (ObjectCommand *oc)
     return 0;
   }
 
-  QMap<int, Data *> data = toc.map();
-  int size = data.size();
+  Bars *ibars = toc.getBars(_inputKey);
+  if (! ibars)
+  {
+    qDebug() << "SINEObject::update: invalid input bars" << _inputKey;
+    return 0;
+  }
+
+  int size = ibars->_bars.size();
+  
   TA_Real input[size];
   TA_Real out[size];
   TA_Real out2[size];
   TA_Integer outBeg;
   TA_Integer outNb;
   int dpos = 0;
-  QMapIterator<int, Data *> it(data);
+  QMapIterator<int, Bar *> it(ibars->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *d = it.value();
-    
-    if (d->contains(_inputKey))
-      input[dpos++] = (TA_Real) d->value(_inputKey).toDouble();
+    Bar *d = it.value();
+    input[dpos++] = (TA_Real) d->v;
   }
   
   TA_RetCode rc = TA_HT_SINE(0,
@@ -153,10 +162,8 @@ SINEObject::update (ObjectCommand *oc)
   while (it.hasPrevious() && outLoop > -1)
   {
     it.previous();
-    Data *b = new Data;
-    b->insert(_sineKey, out[outLoop]);
-    b->insert(_leadKey, out2[outLoop--]);
-    _bars.insert(it.key(), b);
+    _sine->setValue(it.key(), (double) out[outLoop]);
+    _lead->setValue(it.key(), (double) out2[outLoop--]);
   }
   
   return 1;
@@ -196,7 +203,8 @@ int
 SINEObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_sineKey, _sine);
+  oc->setValue(_leadKey, _lead);
   return 1;
 }
 

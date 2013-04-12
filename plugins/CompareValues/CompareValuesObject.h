@@ -27,6 +27,7 @@
 
 #include "Object.h"
 #include "CompareValuesDialog.h"
+#include "Bars.h"
 
 class CompareValuesObject : public Object
 {
@@ -52,7 +53,7 @@ class CompareValuesObject : public Object
   private:
     QStringList _commandList;
     QStringList _opList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _input2Object;
     QString _inputKey;

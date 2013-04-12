@@ -46,7 +46,6 @@ CurveBarObject::CurveBarObject (QString profile, QString name)
   _commandList << QString("save");
   _commandList << QString("dialog");
   _commandList << QString("copy");
-  _commandList << QString("output");
   _commandList << QString("set_color");
   _commandList << QString("settings");
 }
@@ -94,12 +93,9 @@ CurveBarObject::message (ObjectCommand *oc)
       rc = copy(oc);
       break;
     case 10:
-      rc = output(oc);
-      break;
-    case 11:
       rc = setColor(oc);
       break;
-    case 12:
+    case 11:
       rc = settings(oc);
       break;
     default:
@@ -172,10 +168,10 @@ CurveBarObject::draw (ObjectCommand *oc)
   int x = 0;
   while (x < rect.width() && pos <= end)
   {
-    Data *bar = _bars.value(pos);
+    BVBar *bar = _bars.value(pos);
     if (bar)
     {
-      toc.setValue(QString("value"), bar->value("v").toDouble());
+      toc.setValue(QString("value"), bar->value);
       if (! plot->message(&toc))
       {
 	qDebug() << "CurveBarObject::drawBar: value error";
@@ -187,13 +183,13 @@ CurveBarObject::draw (ObjectCommand *oc)
       {
         QRect r(x, v, width - 1, 0);
         r.setHeight(zero - v);
-        p->fillRect(r, bar->value("c").value<QColor>());
+        p->fillRect(r, bar->color);
       }
       else
       {
         QRect r(x, zero, width - 1, 0);
         r.setHeight(v - zero);
-        p->fillRect(r, bar->value("c").value<QColor>());
+        p->fillRect(r, bar->color);
       }
     }
     
@@ -229,19 +225,23 @@ CurveBarObject::update (ObjectCommand *oc)
     qDebug() << "CurveLineObject::update: message error" << input->plugin() << toc.command();
     return 0;
   }
+
+  Bars *ibars = toc.getBars(_inputKey);
+  if (! ibars)
+  {
+    qDebug() << "CurveLineObject::update: invalid input bars" << _inputKey;
+    return 0;
+  }
   
-  QMapIterator<int, Data *> it(toc.map());
+  QMapIterator<int, Bar *> it(ibars->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *bar = it.value();
+    Bar *bar = it.value();
 
-    if (! bar->contains(_inputKey))
-      continue;
-    
-    Data *nbar = new Data;
-    nbar->insert("c", _color);
-    nbar->insert("v", bar->value(_inputKey));
+    BVBar *nbar = new BVBar;
+    nbar->color =  _color;
+    nbar->value = bar->v;
     _bars.insert(it.key(), nbar);
   }
 
@@ -263,13 +263,13 @@ CurveBarObject::info (ObjectCommand *oc)
   // get index
   int index = oc->getInt(QString("index"));
 
-  Data *bar = _bars.value(index);
+  BVBar *bar = _bars.value(index);
   if (! bar)
     return 0;
 
   Util strip;
   QString ts;
-  strip.strip(bar->value("v").toDouble(), 4, ts);
+  strip.strip(bar->value, 4, ts);
   
   Data info;
   info.insert(_label, ts);
@@ -295,13 +295,13 @@ CurveBarObject::highLowRange (ObjectCommand *oc)
 
   ObjectCommand toc(QString("set_high_low"));
   
-  QMapIterator<int, Data *> it(_bars);
+  QMapIterator<int, BVBar *> it(_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *b = it.value();
+    BVBar *b = it.value();
     
-    double h = b->value("v").toDouble();
+    double h = b->value;
     double l = 0;
     
     if (h < l)
@@ -324,12 +324,12 @@ CurveBarObject::scalePoint (ObjectCommand *oc)
 {
   int index = oc->getInt(QString("index"));
   
-  Data *b = _bars.value(index);
+  BVBar *b = _bars.value(index);
   if (! b)
     return 0;
 
-  oc->setValue(QString("color"), b->value("c").value<QColor>());
-  oc->setValue(QString("value"), b->value("v").toDouble());
+  oc->setValue(QString("color"), b->color);
+  oc->setValue(QString("value"), b->value);
   
   return 1;
 }
@@ -357,7 +357,7 @@ CurveBarObject::startEndIndex (int &start, int &end)
   start = 0;
   end = 0;
   
-  QMapIterator<int, Data *> it(_bars);
+  QMapIterator<int, BVBar *> it(_bars);
   it.toFront();
   if (! it.hasNext())
     return 0;
@@ -439,7 +439,7 @@ int
 CurveBarObject::copy (ObjectCommand *oc)
 {
   QString key("input");
-  Object *input = (Object *) oc->getObject(key);
+  CurveBarObject *input = (CurveBarObject *) oc->getObject(key);
   if (! input)
   {
     qDebug() << "CurveBarObject::copy: invalid" << key;
@@ -452,16 +452,15 @@ CurveBarObject::copy (ObjectCommand *oc)
     return 0;
   }
 
-  key = QString("output");
+  key = QString("settings");
   ObjectCommand toc(key);
   if (! input->message(&toc))
   {
     qDebug() << "CurveBarObject::copy: invalid" << input->plugin() << key;
     return 0;
   }
-  
-  qDeleteAll(_bars);
-  _bars.clear();
+
+  clear();
 
   _inputObject = toc.getString(QString("input_object"));
   _inputKey = toc.getString(QString("input_key"));
@@ -469,26 +468,18 @@ CurveBarObject::copy (ObjectCommand *oc)
   _color = toc.getColor(QString("color"));
   _plotObject = toc.getString(QString("plot_object"));
   
-  QMapIterator<int, Data *> it(toc.map());
+  QMapIterator<int, BVBar *> it(input->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *b = it.value();
+    BVBar *b = it.value();
     
-    Data *nb = new Data;
-    nb->insert("v", b->value("v"));
-    nb->insert("c", b->value("c"));
+    BVBar *nb = new BVBar;
+    nb->value = b->value;
+    nb->color = b->color;
     _bars.insert(it.key(), nb);
   }
   
-  return 1;
-}
-
-int
-CurveBarObject::output (ObjectCommand *oc)
-{
-  oc->setMap(_bars);
-  settings(oc);  
   return 1;
 }
 
@@ -498,11 +489,11 @@ CurveBarObject::setColor (ObjectCommand *oc)
   int index = oc->getInt(QString("index"));
   QColor color = oc->getColor(QString("color"));
   
-  Data *bar = _bars.value(index);
+  BVBar *bar = _bars.value(index);
   if (! bar)
     return 0;
   
-  bar->insert("c", color);
+  bar->color = color;
   
   return 1;
 }
@@ -526,4 +517,3 @@ CurveBarObject::settings (ObjectCommand *oc)
 
   return 1;
 }
-

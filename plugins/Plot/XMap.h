@@ -28,6 +28,7 @@
 #include <QStringList>
 
 #include "PlotWidgetDateTick.h"
+#include "Bars.h"
 
 typedef struct
 {
@@ -43,7 +44,7 @@ class XMap
     XMap ();
     ~XMap ();
     void clear ();
-    void setDates (QMap<int, Data *> &, QString dateKey, QString length);
+    void setDates (Bars *, QString dateKey, QString length);
     QDateTime indexToDate (int);
     int size ();
     int xToIndex (int x);

@@ -60,24 +60,21 @@ PlotWidgetDateTick::size ()
 
 void
 //PlotWidgetDateTick::setTicks (QList<QDateTime> &d, OFCTypeBarLength::Length l)
-PlotWidgetDateTick::setTicks (QMap<int, Data *> &bars, QString dateKey)
+PlotWidgetDateTick::setTicks (Bars *bars, QString dateKey)
 {
   clear();
 
-  if (! bars.size())
+  if (! bars->_bars.size())
     return;
 
   QDateTime pdate;
-  QMapIterator<int, Data *> it(bars);
+  QMapIterator<int, Bar *> it(bars->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *d = it.value();
+    Bar *d = it.value();
     
-    if (! d->contains(dateKey))
-      continue;
-    
-    QDateTime date = d->value(dateKey).toDateTime();
+    QDateTime date = d->date;
     if (! date.isValid())
       continue;
     

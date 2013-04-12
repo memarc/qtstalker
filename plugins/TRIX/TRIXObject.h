@@ -23,10 +23,10 @@
 #define PLUGIN_TRIX_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "TRIXDialog.h"
+#include "Bars.h"
 
 class TRIXObject : public Object
 {
@@ -49,7 +49,7 @@ class TRIXObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _inputKey;
     QString _outputKey;

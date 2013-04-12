@@ -23,10 +23,10 @@
 #define PLUGIN_MAMA_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "MAMADialog.h"
+#include "Bars.h"
 
 class MAMAObject : public Object
 {
@@ -49,7 +49,8 @@ class MAMAObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_mbars;
+    Bars *_fbars;
     QString _inputObject;
     QString _inputKey;
     QString _mamaKey;

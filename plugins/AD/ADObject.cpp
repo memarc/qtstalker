@@ -45,6 +45,8 @@ ADObject::ADObject (QString profile, QString name)
   _closeKey = QString("C");
   _volumeKey = QString("C");
   
+  _bars = new Bars;
+  
   _commandList << QString("update");
   _commandList << QString("dialog");
   _commandList << QString("output");
@@ -55,14 +57,13 @@ ADObject::ADObject (QString profile, QString name)
 
 ADObject::~ADObject ()
 {
-  clear();
+  delete _bars;
 }
 
 void
 ADObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _bars->clear();
 }
 
 int
@@ -118,9 +119,37 @@ ADObject::update (ObjectCommand *oc)
     return 0;
   }
 
-  QMap<int, Data *> data = toc.map();
+  Bars *hbars = toc.getBars(_highKey);
+  if (! hbars)
+  {
+    qDebug() << "ADObject::update: invalid high bars" << _highKey;
+    return 0;
+  }
+
+  Bars *lbars = toc.getBars(_lowKey);
+  if (! lbars)
+  {
+    qDebug() << "ADObject::update: invalid low bars" << _lowKey;
+    return 0;
+  }
+
+  Bars *cbars = toc.getBars(_closeKey);
+  if (! cbars)
+  {
+    qDebug() << "ADObject::update: invalid close bars" << _closeKey;
+    return 0;
+  }
+
+  Bars *vbars = toc.getBars(_volumeKey);
+  if (! vbars)
+  {
+    qDebug() << "ADObject::update: invalid volume bars" << _volumeKey;
+    return 0;
+  }
+
+  QList<int> keys = cbars->_bars.keys();
   
-  int size = data.size();
+  int size = keys.size();
   TA_Real high[size];
   TA_Real low[size];
   TA_Real close[size];
@@ -129,25 +158,28 @@ ADObject::update (ObjectCommand *oc)
   TA_Integer outBeg;
   TA_Integer outNb;
   int dpos = 0;
-  QMapIterator<int, Data *> it(data);
-  while (it.hasNext())
+  for (int pos = 0; pos < keys.size(); pos++)
   {
-    it.next();
-    Data *d = it.value();
-    
-    if (! d->contains(_highKey))
+    Bar *hbar = hbars->value(keys.at(pos));
+    if (! hbar)
       continue;
-    if (! d->contains(_lowKey))
+
+    Bar *lbar = lbars->value(keys.at(pos));
+    if (! lbar)
       continue;
-    if (! d->contains(_closeKey))
+
+    Bar *cbar = cbars->value(keys.at(pos));
+    if (! cbar)
       continue;
-    if (! d->contains(_volumeKey))
+
+    Bar *vbar = vbars->value(keys.at(pos));
+    if (! vbar)
       continue;
-    
-    high[dpos] = (TA_Real) d->value(_highKey).toDouble();
-    low[dpos] = (TA_Real) d->value(_lowKey).toDouble();
-    close[dpos] = (TA_Real) d->value(_closeKey).toDouble();
-    volume[dpos++] = (TA_Real) d->value(_volumeKey).toDouble();
+
+    high[dpos] = (TA_Real) hbar->v;
+    low[dpos] = (TA_Real) lbar->v;
+    close[dpos] = (TA_Real) cbar->v;
+    volume[dpos++] = (TA_Real) vbar->v;
   }
   
   TA_RetCode rc = TA_AD(0,
@@ -167,13 +199,11 @@ ADObject::update (ObjectCommand *oc)
   }
 
   int outLoop = outNb - 1;
-  it.toBack();
-  while (it.hasPrevious() && outLoop > -1)
+  int pos = keys.size() - 1;
+  while (pos > -1 && outLoop > -1)
   {
-    it.previous();
-    Data *b = new Data;
-    b->insert(_outputKey, out[outLoop--]);
-    _bars.insert(it.key(), b);
+    _bars->setValue(keys.at(pos), (double) out[outLoop--]);
+    pos--;
   }
   
   return 1;
@@ -213,7 +243,7 @@ int
 ADObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_outputKey, _bars);
   return 1;
 }
 

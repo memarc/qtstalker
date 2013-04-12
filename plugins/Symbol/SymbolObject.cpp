@@ -379,16 +379,29 @@ SymbolObject::exchanges (ObjectCommand *oc)
 int
 SymbolObject::values (ObjectCommand *oc)
 {
-  oc->setMap(_bars);
+  QHashIterator<QString, Bars *> it(_bars);
+  while (it.hasNext())
+  {
+    it.next();
+    Bars *bars = it.value();
+    oc->setValue(it.key(), bars);
+  }
+  
   oc->setValue(QString("exchange"), _exchange);
   oc->setValue(QString("ticker"), _ticker);
+  
   return 1;
 }
 
 int
 SymbolObject::size (ObjectCommand *oc)
 {
-  oc->setValue(QString("size"), _bars.size());
+  Bars *dates = _bars.value(QString("D"));
+  if (! dates)
+    return 0;
+  
+  oc->setValue(QString("size"), dates->_bars.size());
+  
   return 1;
 }
 
@@ -459,7 +472,7 @@ int
 SymbolObject::copy (ObjectCommand *oc)
 {
   QString key("input");
-  Object *input = (Object *) oc->getObject(key);
+  SymbolObject *input = (SymbolObject *) oc->getObject(key);
   if (! input)
   {
     qDebug() << "SymbolObject::copy: invalid" << key;
@@ -485,18 +498,12 @@ SymbolObject::copy (ObjectCommand *oc)
   _exchange = toc.getString(QString("exchange"));
   _ticker = toc.getString(QString("ticker"));
   
-  QMapIterator<int, Data *> it(toc.map());
+  QHashIterator<QString, Bars *> it(input->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *b = it.value();
-    
-    QStringList keys = b->keys();
-    
-    Data *nb = new Data;
-    for (int pos = 0; pos < keys.size(); pos++)
-      nb->insert(keys.at(pos), b->value(keys.at(pos)));
-    _bars.insert(it.key(), nb);
+    Bars *bars = it.value();
+    _bars.insert(it.key(), bars->copy());
   }
 //qDebug() << "SymbolObject::copy:" << _bars.size();
 
@@ -675,12 +682,41 @@ SymbolObject::getBars (QDateTime &startDate, QDateTime &endDate, QString table, 
       bar->insert(QString("C"), d.value(QString("C")));
     }
   }
+
+  Bars *dbars = new Bars;
+  _bars.insert(QString("D"), dbars);
+  
+  Bars *obars = new Bars;
+  _bars.insert(QString("O"), obars);
+  
+  Bars *hbars = new Bars;
+  _bars.insert(QString("H"), hbars);
+  
+  Bars *lbars = new Bars;
+  _bars.insert(QString("L"), lbars);
+  
+  Bars *cbars = new Bars;
+  _bars.insert(QString("C"), cbars);
+  
+  Bars *vbars = new Bars;
+  _bars.insert(QString("V"), vbars);
   
   keys = tbars.keys();
   qSort(keys);
   for (int pos = 0; pos < keys.size(); pos++)
-    _bars.insert(pos, tbars.value(keys.at(pos)));
+  {
+    Data *obar = tbars.value(keys.at(pos));
+    
+    dbars->setDate(pos, obar->value(QString("D")).toDateTime());
+    obars->setValue(pos, obar->value(QString("O")).toDouble());
+    hbars->setValue(pos, obar->value(QString("H")).toDouble());
+    lbars->setValue(pos, obar->value(QString("L")).toDouble());
+    cbars->setValue(pos, obar->value(QString("C")).toDouble());
+    vbars->setValue(pos, obar->value(QString("V")).toDouble());
+  }
 
+  qDeleteAll(tbars);
+  
   return 1;
 }
 

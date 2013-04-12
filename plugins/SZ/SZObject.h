@@ -23,10 +23,10 @@
 #define PLUGIN_SZ_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "SZDialog.h"
+#include "Bars.h"
 
 class SZObject : public Object
 {
@@ -50,7 +50,8 @@ class SZObject : public Object
   private:
     QStringList _commandList;
     QStringList _methodList;
-    QMap<int, Data *> _bars;
+    Bars *_ubars;
+    Bars *_dbars;
     QString _inputObject;
     QString _highKey;
     QString _lowKey;

@@ -45,6 +45,8 @@ BOPObject::BOPObject (QString profile, QString name)
   _lowKey = QString("L");
   _closeKey = QString("C");
   
+  _bars = new Bars;
+  
   _commandList << QString("update");
   _commandList << QString("dialog");
   _commandList << QString("output");
@@ -55,14 +57,13 @@ BOPObject::BOPObject (QString profile, QString name)
 
 BOPObject::~BOPObject ()
 {
-  clear();
+  delete _bars;
 }
 
 void
 BOPObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _bars->clear();
 }
 
 int
@@ -118,9 +119,37 @@ BOPObject::update (ObjectCommand *oc)
     return 0;
   }
 
-  QMap<int, Data *> data = toc.map();
+  Bars *obars = toc.getBars(_openKey);
+  if (! obars)
+  {
+    qDebug() << "BOPObject::update: invalid open bars" << _openKey;
+    return 0;
+  }
+
+  Bars *hbars = toc.getBars(_highKey);
+  if (! hbars)
+  {
+    qDebug() << "BOPObject::update: invalid high bars" << _highKey;
+    return 0;
+  }
+
+  Bars *lbars = toc.getBars(_lowKey);
+  if (! lbars)
+  {
+    qDebug() << "BOPObject::update: invalid low bars" << _lowKey;
+    return 0;
+  }
+
+  Bars *cbars = toc.getBars(_closeKey);
+  if (! cbars)
+  {
+    qDebug() << "BOPObject::update: invalid close bars" << _closeKey;
+    return 0;
+  }
+
+  QList<int> keys = cbars->_bars.keys();
+  int size = keys.size();
   
-  int size = data.size();
   TA_Real open[size];
   TA_Real high[size];
   TA_Real low[size];
@@ -129,25 +158,28 @@ BOPObject::update (ObjectCommand *oc)
   TA_Integer outBeg;
   TA_Integer outNb;
   int dpos = 0;
-  QMapIterator<int, Data *> it(data);
-  while (it.hasNext())
+  for (int pos = 0; pos < keys.size(); pos++)
   {
-    it.next();
-    Data *d = it.value();
+    Bar *obar = obars->value(keys.at(pos));
+    if (! obar)
+      continue;
+
+    Bar *hbar = hbars->value(keys.at(pos));
+    if (! hbar)
+      continue;
+
+    Bar *lbar = lbars->value(keys.at(pos));
+    if (! lbar)
+      continue;
+
+    Bar *cbar = cbars->value(keys.at(pos));
+    if (! cbar)
+      continue;
     
-    if (! d->contains(_openKey))
-      continue;
-    if (! d->contains(_highKey))
-      continue;
-    if (! d->contains(_lowKey))
-      continue;
-    if (! d->contains(_closeKey))
-      continue;
-    
-    open[dpos] = (TA_Real) d->value(_openKey).toDouble();
-    high[dpos] = (TA_Real) d->value(_highKey).toDouble();
-    low[dpos] = (TA_Real) d->value(_lowKey).toDouble();
-    close[dpos++] = (TA_Real) d->value(_closeKey).toDouble();
+    open[dpos] = (TA_Real) obar->v;
+    high[dpos] = (TA_Real) hbar->v;
+    low[dpos] = (TA_Real) lbar->v;
+    close[dpos++] = (TA_Real) cbar->v;
   }
   
   TA_RetCode rc = TA_BOP(0,
@@ -167,13 +199,11 @@ BOPObject::update (ObjectCommand *oc)
   }
 
   int outLoop = outNb - 1;
-  it.toBack();
-  while (it.hasPrevious() && outLoop > -1)
+  int pos = keys.size() - 1;
+  while (pos > -1 && outLoop > -1)
   {
-    it.previous();
-    Data *b = new Data;
-    b->insert(_outputKey, out[outLoop--]);
-    _bars.insert(it.key(), b);
+    _bars->setValue(keys.at(pos), (double) out[outLoop--]);
+    pos--;
   }
   
   return 1;
@@ -213,7 +243,7 @@ int
 BOPObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_outputKey, _bars);
   return 1;
 }
 

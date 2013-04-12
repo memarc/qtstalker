@@ -23,10 +23,10 @@
 #define PLUGIN_MFI_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "MFIDialog.h"
+#include "Bars.h"
 
 class MFIObject : public Object
 {
@@ -49,7 +49,7 @@ class MFIObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _highKey;
     QString _lowKey;

@@ -23,10 +23,10 @@
 #define PLUGIN_MA_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "MADialog.h"
+#include "Bars.h"
 
 class MAObject : public Object
 {
@@ -50,7 +50,7 @@ class MAObject : public Object
   private:
     QStringList _commandList;
     QStringList _maList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _inputKey;
     QString _maType;

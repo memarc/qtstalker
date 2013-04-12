@@ -23,10 +23,10 @@
 #define PLUGIN_STOCHF_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "STOCHFDialog.h"
+#include "Bars.h"
 
 class STOCHFObject : public Object
 {
@@ -50,7 +50,8 @@ class STOCHFObject : public Object
   private:
     QStringList _commandList;
     QStringList _maList;
-    QMap<int, Data *> _bars;
+    Bars *_kbars;
+    Bars *_dbars;
     QString _inputObject;
     QString _highKey;
     QString _lowKey;

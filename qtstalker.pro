@@ -157,7 +157,7 @@ SUBDIRS += plugins/T3
 SUBDIRS += plugins/TRIX
 SUBDIRS += plugins/ULTOSC
 SUBDIRS += plugins/VAR
-SUBDIRS += plugins/ValuesDialog
+#SUBDIRS += plugins/ValuesDialog
 SUBDIRS += plugins/WILLR
 SUBDIRS += plugins/YahooHistory
 

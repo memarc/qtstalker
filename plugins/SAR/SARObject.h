@@ -23,10 +23,10 @@
 #define PLUGIN_SAR_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "SARDialog.h"
+#include "Bars.h"
 
 class SARObject : public Object
 {
@@ -49,7 +49,7 @@ class SARObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _highKey;
     QString _lowKey;

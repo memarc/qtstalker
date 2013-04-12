@@ -23,7 +23,6 @@
 #define PLUGIN_VAR_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "VARDialog.h"
@@ -49,7 +48,7 @@ class VARObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _inputKey;
     QString _outputKey;

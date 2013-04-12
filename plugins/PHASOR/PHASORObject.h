@@ -23,10 +23,10 @@
 #define PLUGIN_PHASOR_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "PHASORDialog.h"
+#include "Bars.h"
 
 class PHASORObject : public Object
 {
@@ -49,7 +49,8 @@ class PHASORObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_quad;
+    Bars *_phase;
     QString _inputObject;
     QString _inputKey;
     QString _quadKey;
