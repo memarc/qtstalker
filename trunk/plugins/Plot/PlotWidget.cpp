@@ -84,18 +84,11 @@ PlotWidget::draw ()
 }
 
 void
-PlotWidget::setDates (Object *d, QString key, QString length)
+PlotWidget::setDates (Bars *d, QString key, QString length)
 {
   clear();
-  
-  ObjectCommand toc(QString("output"));
-  d->message(&toc);
-  QMap<int, Data *> dates = toc.map();
-//qDebug() << "PlotWidget::setDates:" << dates.size() << key << length;  
-
-  _plotDate->setDates(dates, key);
-  
-  _xmap->setDates(dates, key, length);
+  _plotDate->setDates(d, key);
+  _xmap->setDates(d, key, length);
 }
 
 PlotWidgetArea *

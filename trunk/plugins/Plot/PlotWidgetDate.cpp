@@ -143,7 +143,7 @@ PlotWidgetDate::drawDates ()
 }
 
 void
-PlotWidgetDate::setDates (QMap<int, Data *> &bars, QString k)
+PlotWidgetDate::setDates (Bars *bars, QString k)
 {
   clear();
   _ticks->setTicks(bars, k);

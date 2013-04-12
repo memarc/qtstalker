@@ -30,6 +30,7 @@
 #include "Object.h"
 #include "XMap.h"
 #include "YMap.h"
+#include "Bars.h"
 
 
 class PlotWidget : public QWidget
@@ -42,7 +43,7 @@ class PlotWidget : public QWidget
   public:
     PlotWidget (QWidget *, Object *);
     ~PlotWidget ();
-    void setDates (Object *, QString key, QString length);
+    void setDates (Bars *, QString key, QString length);
     int index ();
     int spacing ();
     PlotWidgetArea * plotArea ();

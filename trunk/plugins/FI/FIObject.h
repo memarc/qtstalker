@@ -23,10 +23,10 @@
 #define PLUGIN_FI_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "FIDialog.h"
+#include "Bars.h"
 
 class FIObject : public Object
 {
@@ -49,7 +49,7 @@ class FIObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _closeKey;
     QString _volumeKey;

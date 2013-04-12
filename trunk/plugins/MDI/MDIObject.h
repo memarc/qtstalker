@@ -23,10 +23,10 @@
 #define PLUGIN_MDI_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "MDIDialog.h"
+#include "Bars.h"
 
 class MDIObject : public Object
 {
@@ -49,7 +49,7 @@ class MDIObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _highKey;
     QString _lowKey;

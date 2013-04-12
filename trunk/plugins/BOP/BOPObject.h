@@ -23,10 +23,10 @@
 #define PLUGIN_BOP_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "BOPDialog.h"
+#include "Bars.h"
 
 class BOPObject : public Object
 {
@@ -49,7 +49,7 @@ class BOPObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _openKey;
     QString _highKey;

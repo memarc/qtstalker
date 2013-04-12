@@ -49,7 +49,6 @@ CurveCandleObject::CurveCandleObject (QString profile, QString name)
   _commandList << QString("save");
   _commandList << QString("dialog");
   _commandList << QString("copy");
-  _commandList << QString("output");
   _commandList << QString("set_color");
   _commandList << QString("settings");
 }
@@ -104,12 +103,9 @@ CurveCandleObject::message (ObjectCommand *oc)
       rc = copy(oc);
       break;
     case 10:
-      rc = output(oc);
-      break;
-    case 11:
       rc = setColor(oc);
       break;
-    case 12:
+    case 11:
       rc = settings(oc);
       break;
     default:
@@ -166,38 +162,38 @@ CurveCandleObject::draw (ObjectCommand *oc)
   int yc = 0;
   while (x < rect.width() && pos <= end)
   {
-    Data *b = _bars.value(pos);
+    CandleBar *b = _bars.value(pos);
     if (b)
     {
-      pen.setColor(b->value("c").value<QColor>());
+      pen.setColor(b->color);
       p->setPen(pen);
 
-      toc.setValue(valueKey, b->value("O").toDouble());
+      toc.setValue(valueKey, b->open);
       if (! plot->message(&toc))
 	continue;
       yo = toc.getInt(yKey);
 
-      toc.setValue(valueKey, b->value("H").toDouble());
+      toc.setValue(valueKey, b->high);
       if (! plot->message(&toc))
 	continue;
       yh = toc.getInt(yKey);
 
-      toc.setValue(valueKey, b->value("L").toDouble());
+      toc.setValue(valueKey, b->low);
       if (! plot->message(&toc))
 	continue;
       yl = toc.getInt(yKey);
       
-      toc.setValue(valueKey, b->value("C").toDouble());
+      toc.setValue(valueKey, b->close);
       if (! plot->message(&toc))
 	continue;
       yc = toc.getInt(yKey);
       
-      if (b->value("f").toBool())
+      if (b->fill)
       {
         // filled candle c < o
         QRect r(QPoint(x + 2, yo), QPoint(x + width - 2, yc));
         p->drawLine (r.center().x(), yh, r.center().x(), yl);
-        p->setBrush(b->value("c").value<QColor>());
+        p->setBrush(b->color);
         p->drawRect(r);
       }
       else
@@ -223,23 +219,23 @@ CurveCandleObject::info (ObjectCommand *oc)
 {
   int index = oc->getInt(QString("index"));
   
-  Data *bar = _bars.value(index);
+  CandleBar *bar = _bars.value(index);
   if (! bar)
     return 0;
 
   Data info;
   Util util;
   QString ts;
-  util.strip(bar->value("O").toDouble(), 4, ts);
+  util.strip(bar->open, 4, ts);
   info.insert(QString("O"), QVariant(ts));
 
-  util.strip(bar->value("H").toDouble(), 4, ts);
+  util.strip(bar->high, 4, ts);
   info.insert(QString("H"), QVariant(ts));
 
-  util.strip(bar->value("L").toDouble(), 4, ts);
+  util.strip(bar->low, 4, ts);
   info.insert(QString("L"), QVariant(ts));
 
-  util.strip(bar->value("C").toDouble(), 4, ts);
+  util.strip(bar->close, 4, ts);
   info.insert(QString("C"), QVariant(ts));
 
   oc->setValue(QString("info"), info);
@@ -262,15 +258,15 @@ CurveCandleObject::highLowRange (ObjectCommand *oc)
 
   ObjectCommand toc(QString("set_high_low"));
   
-  QMapIterator<int, Data *> it(_bars);
+  QMapIterator<int, CandleBar *> it(_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *b = it.value();
+    CandleBar *b = it.value();
 
     toc.setValue(QString("index"), it.key());
-    toc.setValue(QString("high"), b->value("H").toDouble());
-    toc.setValue(QString("low"), b->value("L").toDouble());
+    toc.setValue(QString("high"), b->high);
+    toc.setValue(QString("low"), b->low);
     plot->message(&toc);
   }
   
@@ -303,36 +299,64 @@ CurveCandleObject::update (ObjectCommand *oc)
     return 0;
   }
   
-  QMapIterator<int, Data *> it(toc.map());
-  while (it.hasNext())
+  Bars *obars = toc.getBars(_openKey);
+  if (! obars)
   {
-    it.next();
-    Data *bar = it.value();
+    qDebug() << "CurveCandleObject::setInput: invalid open bars" << _openKey;
+    return 0;
+  }
+  
+  Bars *hbars = toc.getBars(_highKey);
+  if (! hbars)
+  {
+    qDebug() << "CurveCandleObject::setInput: invalid high bars" << _highKey;
+    return 0;
+  }
+  
+  Bars *lbars = toc.getBars(_lowKey);
+  if (! lbars)
+  {
+    qDebug() << "CurveCandleObject::setInput: invalid low bars" << _lowKey;
+    return 0;
+  }
+  
+  Bars *cbars = toc.getBars(_closeKey);
+  if (! cbars)
+  {
+    qDebug() << "CurveCandleObject::setInput: invalid close bars" << _closeKey;
+    return 0;
+  }
 
-    if (! bar->contains(_openKey))
-      continue;
-    if (! bar->contains(_highKey))
-      continue;
-    if (! bar->contains(_lowKey))
-      continue;
-    if (! bar->contains(_closeKey))
+  QList<int> keys = cbars->_bars.keys();
+  
+  for (int pos = 0; pos < keys.size(); pos++)
+  {
+    Bar *obar = obars->value(keys.at(pos));
+    if (! obar)
       continue;
 
-    double o = bar->value(_openKey).toDouble();
-    double c = bar->value(_closeKey).toDouble();
-    bool fill = FALSE;
+    Bar *hbar = hbars->value(keys.at(pos));
+    if (! hbar)
+      continue;
 
-    Data *nbar = new Data;
-    nbar->insert("c", _color);
-    nbar->insert("O", o);
-    nbar->insert("H", bar->value(_highKey));
-    nbar->insert("L", bar->value(_lowKey));
-    nbar->insert("C", c);
-    if (c < o)
-      fill = TRUE;
-    nbar->insert("f", fill);
-    
-    _bars.insert(it.key(), nbar);
+    Bar *lbar = lbars->value(keys.at(pos));
+    if (! lbar)
+      continue;
+
+    Bar *cbar = cbars->value(keys.at(pos));
+    if (! cbar)
+      continue;
+
+    CandleBar *nbar = new CandleBar;
+    nbar->fill = FALSE;
+    nbar->color = _color;
+    nbar->open = obar->v;
+    nbar->high = hbar->v;
+    nbar->low = lbar->v;
+    nbar->close = cbar->v;
+    if (nbar->close < nbar->open)
+      nbar->fill = TRUE;
+    _bars.insert(keys.at(pos), nbar);
   }
 
   // add to plot
@@ -352,12 +376,12 @@ CurveCandleObject::scalePoint (ObjectCommand *oc)
 {
   int index = oc->getInt(QString("index"));
   
-  Data *b = _bars.value(index);
+  CandleBar *b = _bars.value(index);
   if (! b)
     return 0;
 
-  oc->setValue(QString("color"), b->value("c").value<QColor>());
-  oc->setValue(QString("value"), b->value("C").toDouble());
+  oc->setValue(QString("color"), b->color);
+  oc->setValue(QString("value"), b->close);
   
   return 1;
 }
@@ -451,7 +475,7 @@ int
 CurveCandleObject::copy (ObjectCommand *oc)
 {
   QString key("input");
-  Object *input = (Object *) oc->getObject(key);
+  CurveCandleObject *input = (CurveCandleObject *) oc->getObject(key);
   if (! input)
   {
     qDebug() << "CurveCandleObject::copy: invalid" << key;
@@ -464,7 +488,7 @@ CurveCandleObject::copy (ObjectCommand *oc)
     return 0;
   }
 
-  key = QString("output");
+  key = QString("settings");
   ObjectCommand toc(key);
   if (! input->message(&toc))
   {
@@ -484,30 +508,22 @@ CurveCandleObject::copy (ObjectCommand *oc)
   _color = toc.getColor(QString("color"));
   _plotObject = toc.getString(QString("plot_object"));
   
-  QMapIterator<int, Data *> it(toc.map());
+  QMapIterator<int, CandleBar *> it(input->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *b = it.value();
+    CandleBar *b = it.value();
     
-    Data *nb = new Data;
-    nb->insert("O", b->value("O"));
-    nb->insert("H", b->value("H"));
-    nb->insert("L", b->value("L"));
-    nb->insert("C", b->value("C"));
-    nb->insert("c", b->value("c"));
-    nb->insert("f", b->value("f"));
+    CandleBar *nb = new CandleBar;
+    nb->open = b->open;
+    nb->high = b->high;
+    nb->low = b->low;
+    nb->close = b->close;
+    nb->color = b->color;
+    nb->fill = b->fill;
     _bars.insert(it.key(), nb);
   }
   
-  return 1;
-}
-
-int
-CurveCandleObject::output (ObjectCommand *oc)
-{
-  oc->setMap(_bars);
-  settings(oc);
   return 1;
 }
 
@@ -517,11 +533,11 @@ CurveCandleObject::setColor (ObjectCommand *oc)
   int index = oc->getInt(QString("index"));
   QColor color = oc->getColor(QString("color"));
   
-  Data *bar = _bars.value(index);
+  CandleBar *bar = _bars.value(index);
   if (! bar)
     return 0;
   
-  bar->insert("c", color);
+  bar->color = color;
   
   return 1;
 }
@@ -532,7 +548,7 @@ CurveCandleObject::startEndIndex (int &start, int &end)
   start = 0;
   end = 0;
   
-  QMapIterator<int, Data *> it(_bars);
+  QMapIterator<int, CandleBar *> it(_bars);
   it.toFront();
   if (! it.hasNext())
     return 0;

@@ -133,6 +133,17 @@
     </message>
 </context>
 <context>
+    <name>AccumulateDialog</name>
+    <message>
+        <source>Input</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>AddIndicator</name>
     <message>
         <source>Add Indicator</source>
@@ -952,41 +963,6 @@ Create a new group first.</source>
     </message>
 </context>
 <context>
-    <name>GroupDialog</name>
-    <message>
-        <source>Add Symbols</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Delete Symbols</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Select All</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Unselect All</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Symbol</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Name</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Symbols</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Editing Group</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>GroupPage</name>
     <message>
         <source>&amp;New Group</source>
@@ -1042,6 +1018,14 @@ Create a new group first.</source>
     </message>
     <message>
         <source>Confirm Group Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Refresh List</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refresh List</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1143,6 +1127,21 @@ Create a new group first.</source>
     </message>
 </context>
 <context>
+    <name>IndicatorInputWidget</name>
+    <message>
+        <source>Input</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Field</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Look Back</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>IndicatorPlotDialog</name>
     <message>
         <source>New Indicator</source>
@@ -1162,21 +1161,6 @@ Create a new group first.</source>
     </message>
     <message>
         <source>Tab Row</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>InputObjectWidget</name>
-    <message>
-        <source>Input</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Field</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Look Back</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2244,14 +2228,6 @@ Create a new group first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Help</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Quit</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>New Indicator</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2261,14 +2237,6 @@ Create a new group first.</source>
     </message>
     <message>
         <source>Remove Indicator</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Add Symbols</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Remove Symbols</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2285,10 +2253,6 @@ Create a new group first.</source>
     </message>
     <message>
         <source>Scan Step</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Scan Symbols</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2410,6 +2374,13 @@ Create a new group first.</source>
     </message>
     <message>
         <source>Scroll Chart</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SymbolButtonWidget</name>
+    <message>
+        <source>symbols selected</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

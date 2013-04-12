@@ -23,10 +23,10 @@
 #define PLUGIN_CDL_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "CDLDialog.h"
+#include "Bars.h"
 
 class CDLObject : public Object
 {
@@ -49,7 +49,7 @@ class CDLObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _openKey;
     QString _highKey;

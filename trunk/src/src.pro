@@ -2,6 +2,8 @@
 # FILES
 #####################################################
 
+HEADERS += Bars.h
+SOURCES += Bars.cpp
 HEADERS += Dialog.h
 SOURCES += Dialog.cpp
 #HEADERS += InputObjectWidget.h

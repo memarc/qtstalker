@@ -59,7 +59,7 @@ XMap::clear ()
 }
 
 void
-XMap::setDates (QMap<int, Data *> &bars, QString dateKey, QString tlength)
+XMap::setDates (Bars *bars, QString dateKey, QString tlength)
 {
   clear();
   
@@ -71,17 +71,14 @@ XMap::setDates (QMap<int, Data *> &bars, QString dateKey, QString tlength)
   }
   _length = length;
   
-  QMapIterator<int, Data *> it(bars);
+  QMapIterator<int, Bar *> it(bars->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *d = it.value();
-    
-    if (! d->contains(dateKey))
-      continue;
+    Bar *d = it.value();
     
     QDateTime ed, vd;
-    QDateTime sd = d->value(dateKey).toDateTime();
+    QDateTime sd = d->date;
     if (! dateInterval(_length, 1, sd, ed, vd))
       continue;
     

@@ -30,7 +30,7 @@
 #include <QList>
 #include <QDateTime>
 
-#include "Data.h"
+#include "Bars.h"
 
 typedef struct
 {
@@ -46,7 +46,7 @@ class PlotWidgetDateTick
     PlotWidgetDateTick ();
     ~PlotWidgetDateTick ();
     void clear ();
-    void setTicks (QMap<int, Data *> &, QString dateKey);
+    void setTicks (Bars *, QString dateKey);
     int tick (int index, int &type, QString &text);
     int size ();
     

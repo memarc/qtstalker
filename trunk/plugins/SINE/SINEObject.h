@@ -23,10 +23,10 @@
 #define PLUGIN_SINE_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "SINEDialog.h"
+#include "Bars.h"
 
 class SINEObject : public Object
 {
@@ -49,7 +49,8 @@ class SINEObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_sine;
+    Bars *_lead;
     QString _inputObject;
     QString _inputKey;
     QString _sineKey;

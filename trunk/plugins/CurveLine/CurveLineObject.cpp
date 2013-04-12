@@ -48,7 +48,6 @@ CurveLineObject::CurveLineObject (QString profile, QString name)
   _commandList << QString("save");
   _commandList << QString("dialog");
   _commandList << QString("copy");
-  _commandList << QString("output");
   _commandList << QString("set_color");
   _commandList << QString("settings");
   
@@ -104,12 +103,9 @@ CurveLineObject::message (ObjectCommand *oc)
       rc = copy(oc);
       break;
     case 11:
-      rc = output(oc);
-      break;
-    case 12:
       rc = setColor(oc);
       break;
-    case 13:
+    case 12:
       rc = settings(oc);
       break;
     default:
@@ -190,14 +186,14 @@ CurveLineObject::drawLine (QPainter *p, Object *plot, int pos, int end, int widt
   ObjectCommand plotCommand(QString("convert_to_y"));
 
   int x2 = width;  
-  Data *pb = 0;
+  LineBar *pb = 0;
   while (x < rect.width() && pos <= end)
   {
-    Data *b = _bars.value(pos);
+    LineBar *b = _bars.value(pos);
     if (b)
     {
       // get y2
-      plotCommand.setValue(QString("value"), b->value("v").toDouble());
+      plotCommand.setValue(QString("value"), b->value);
       if (! plot->message(&plotCommand))
       {
 	qDebug() << "CurveLineObject::drawLine: message error" << plot->plugin() << plotCommand.command();
@@ -209,7 +205,7 @@ CurveLineObject::drawLine (QPainter *p, Object *plot, int pos, int end, int widt
       if (pb)
       {
         // get y
-        plotCommand.setValue(QString("value"), pb->value("v").toDouble());
+        plotCommand.setValue(QString("value"), pb->value);
         if (! plot->message(&plotCommand))
         {
 	  qDebug() << "CurveLineObject::drawLine: message error" << plot->plugin() << plotCommand.command();
@@ -218,7 +214,7 @@ CurveLineObject::drawLine (QPainter *p, Object *plot, int pos, int end, int widt
         y = plotCommand.getInt(QString("y"));
       }
 	
-      pen.setColor(b->value("c").value<QColor>());
+      pen.setColor(b->color);
       p->setPen(pen);
       p->drawLine (x, y, x2, y2);
 
@@ -245,11 +241,11 @@ CurveLineObject::drawDot (QPainter *p, Object *plot, int pos, int end, int width
 
   while (x < rect.width() && pos <= end)
   {
-    Data *b = _bars.value(pos);
+    LineBar *b = _bars.value(pos);
     if (b)
     {
       // get y
-      plotCommand.setValue(QString("value"), b->value("v").toDouble());
+      plotCommand.setValue(QString("value"), b->value);
       if (! plot->message(&plotCommand))
       {
 	qDebug() << "CurveLineObject::drawDot: message error" << plot->plugin() << plotCommand.command();
@@ -257,7 +253,7 @@ CurveLineObject::drawDot (QPainter *p, Object *plot, int pos, int end, int width
       }
       int y = plotCommand.getInt(QString("y"));
 
-      p->setBrush(b->value("c").value<QColor>());
+      p->setBrush(b->color);
       p->drawEllipse(x + offset, y, _penWidth, _penWidth);
     }
     
@@ -275,14 +271,14 @@ CurveLineObject::info (ObjectCommand *oc)
   // get index
   int index = oc->getInt(QString("index"));
 
-  Data *bar = _bars.value(index);
+  LineBar *bar = _bars.value(index);
   if (! bar)
     return 0;
 
   Data info;
   QString ts;
   Util util;
-  util.strip(bar->value("v").toDouble(), 4, ts);
+  util.strip(bar->value, 4, ts);
   info.insert(_label, QVariant(ts));
   oc->setValue(QString("info"), info);
 
@@ -306,15 +302,15 @@ CurveLineObject::highLowRange (ObjectCommand *oc)
 
   ObjectCommand toc(QString("set_high_low"));
   
-  QMapIterator<int, Data *> it(_bars);
+  QMapIterator<int, LineBar *> it(_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *b = it.value();
+    LineBar *b = it.value();
 
     toc.setValue(QString("index"), it.key());
 
-    double v = b->value("v").toDouble();
+    double v = b->value;
     toc.setValue(QString("high"), v);
     toc.setValue(QString("low"), v);
 
@@ -350,19 +346,23 @@ CurveLineObject::update (ObjectCommand *oc)
     qDebug() << "CurveLineObject::update: message error" << input->plugin() << toc.command();
     return 0;
   }
+
+  Bars *ibars = toc.getBars(_inputKey);
+  if (! ibars)
+  {
+    qDebug() << "CurveLineObject::setInput: invalid input bars" << _inputKey;
+    return 0;
+  }
   
-  QMapIterator<int, Data *> it(toc.map());
+  QMapIterator<int, Bar *> it(ibars->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *bar = it.value();
+    Bar *bar = it.value();
 
-    if (! bar->contains(_inputKey))
-      continue;
-    
-    Data *nbar = new Data;
-    nbar->insert("c", _color);
-    nbar->insert("v", bar->value(_inputKey));
+    LineBar *nbar = new LineBar;
+    nbar->color = _color;
+    nbar->value = bar->v;
     _bars.insert(it.key(), nbar);
   }
 
@@ -383,12 +383,12 @@ CurveLineObject::scalePoint (ObjectCommand *oc)
 {
   int index = oc->getInt(QString("index"));
   
-  Data *b = _bars.value(index);
+  LineBar *b = _bars.value(index);
   if (! b)
     return 0;
 
-  oc->setValue(QString("color"), b->value("c").value<QColor>());
-  oc->setValue(QString("value"), b->value("v").toDouble());
+  oc->setValue(QString("color"), b->color);
+  oc->setValue(QString("value"), b->value);
   
   return 1;
 }
@@ -477,7 +477,7 @@ int
 CurveLineObject::copy (ObjectCommand *oc)
 {
   QString key("input");
-  Object *input = (Object *) oc->getObject(key);
+  CurveLineObject *input = (CurveLineObject *) oc->getObject(key);
   if (! input)
   {
     qDebug() << "CurveLineObject::copy: invalid" << key;
@@ -490,7 +490,7 @@ CurveLineObject::copy (ObjectCommand *oc)
     return 0;
   }
 
-  key = QString("output");
+  key = QString("settings");
   ObjectCommand toc(key);
   if (! input->message(&toc))
   {
@@ -509,26 +509,18 @@ CurveLineObject::copy (ObjectCommand *oc)
   _penWidth = toc.getInt(QString("width"));
   _plotObject = toc.getString(QString("plot_object"));
   
-  QMapIterator<int, Data *> it(toc.map());
+  QMapIterator<int, LineBar *> it(input->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *b = it.value();
+    LineBar *b = it.value();
     
-    Data *nb = new Data;
-    nb->insert("v", b->value("v"));
-    nb->insert("c", b->value("c"));
+    LineBar *nb = new LineBar;
+    nb->color = b->color;
+    nb->value = b->value;
     _bars.insert(it.key(), nb);
   }
   
-  return 1;
-}
-
-int
-CurveLineObject::output (ObjectCommand *oc)
-{
-  oc->setMap(_bars);
-  settings(oc);
   return 1;
 }
 
@@ -538,11 +530,11 @@ CurveLineObject::setColor (ObjectCommand *oc)
   int index = oc->getInt(QString("index"));
   QColor color = oc->getColor(QString("color"));
   
-  Data *bar = _bars.value(index);
+  LineBar *bar = _bars.value(index);
   if (! bar)
     return 0;
   
-  bar->insert("c", color);
+  bar->color = color;
   
   return 1;
 }
@@ -553,7 +545,7 @@ CurveLineObject::startEndIndex (int &start, int &end)
   start = 0;
   end = 0;
   
-  QMapIterator<int, Data *> it(_bars);
+  QMapIterator<int, LineBar *> it(_bars);
   it.toFront();
   if (! it.hasNext())
     return 0;

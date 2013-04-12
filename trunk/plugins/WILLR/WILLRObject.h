@@ -23,10 +23,10 @@
 #define PLUGIN_WILLR_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "WILLRDialog.h"
+#include "Bars.h"
 
 class WILLRObject : public Object
 {
@@ -49,7 +49,7 @@ class WILLRObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _highKey;
     QString _lowKey;

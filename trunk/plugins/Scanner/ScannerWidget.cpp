@@ -534,7 +534,6 @@ ScannerWidget::newIndicator ()
                                        QLineEdit::Normal,
                                        tr("New Indicator"),
                                        &ok,
-                                       0,
                                        0);
   
   if (name.isEmpty())
@@ -624,7 +623,6 @@ ScannerWidget::saveResults ()
                                        QLineEdit::Normal,
                                        tr("New Group"),
                                        &ok,
-                                       0,
                                        0);
   
   if (name.isEmpty())

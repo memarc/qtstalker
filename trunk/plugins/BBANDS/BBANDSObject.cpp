@@ -48,6 +48,10 @@ BBANDSObject::BBANDSObject (QString profile, QString name)
   _inputObject = QString("symbol");
   _inputKey = QString("C");
   
+  _uband = new Bars;
+  _mband = new Bars;
+  _lband = new Bars;
+  
   _commandList << QString("update");
   _commandList << QString("dialog");
   _commandList << QString("output");
@@ -69,14 +73,17 @@ BBANDSObject::BBANDSObject (QString profile, QString name)
 
 BBANDSObject::~BBANDSObject ()
 {
-  clear();
+  delete _uband;
+  delete _mband;
+  delete _lband;
 }
 
 void
 BBANDSObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _uband->clear();
+  _mband->clear();
+  _lband->clear();
 }
 
 int
@@ -132,9 +139,15 @@ BBANDSObject::update (ObjectCommand *oc)
     return 0;
   }
 
-  QMap<int, Data *> data = toc.map();
+  Bars *ibars = toc.getBars(_inputKey);
+  if (! ibars)
+  {
+    qDebug() << "BBANDSObject::update: invalid input bars" << _inputKey;
+    return 0;
+  }
   
-  int size = data.size();
+  int size = ibars->_bars.size();
+  
   TA_Real input[size];
   TA_Real out[size];
   TA_Real out2[size];
@@ -142,14 +155,12 @@ BBANDSObject::update (ObjectCommand *oc)
   TA_Integer outBeg;
   TA_Integer outNb;
   int dpos = 0;
-  QMapIterator<int, Data *> it(data);
+  QMapIterator<int, Bar *> it(ibars->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *d = it.value();
-    
-    if (d->contains(_inputKey))
-      input[dpos++] = (TA_Real) d->value(_inputKey).toDouble();
+    Bar *d = it.value();
+    input[dpos++] = (TA_Real) d->v;
   }
   
   TA_RetCode rc = TA_BBANDS(0,
@@ -176,11 +187,9 @@ BBANDSObject::update (ObjectCommand *oc)
   while (it.hasPrevious() && outLoop > -1)
   {
     it.previous();
-    Data *b = new Data;
-    b->insert(_outputUKey, out[outLoop]);
-    b->insert(_outputMKey, out2[outLoop]);
-    b->insert(_outputLKey, out3[outLoop--]);
-    _bars.insert(it.key(), b);
+    _uband->setValue(it.key(), (double) out[outLoop]);
+    _mband->setValue(it.key(), (double) out2[outLoop]);
+    _lband->setValue(it.key(), (double) out3[outLoop--]);
   }
   
   return 1;
@@ -220,7 +229,9 @@ int
 BBANDSObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_outputUKey, _uband);
+  oc->setValue(_outputMKey, _mband);
+  oc->setValue(_outputLKey, _lband);
   return 1;
 }
 

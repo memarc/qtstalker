@@ -31,6 +31,13 @@
 #include "CurveHistogramDialog.h"
 
 
+typedef struct
+{
+  QColor color;
+  double value;
+  
+} HistogramBar;
+
 class CurveHistogramObject : public Object
 {
   Q_OBJECT
@@ -49,11 +56,11 @@ class CurveHistogramObject : public Object
     int save (ObjectCommand *);
     int dialog (ObjectCommand *);
     int copy (ObjectCommand *);
-    int output (ObjectCommand *);
     int setColor (ObjectCommand *);
     int settings (ObjectCommand *);
     
     int startEndIndex (int &start, int &end);
+    QMap<int, HistogramBar *> _bars;
 
   public slots:
     int message (ObjectCommand *);
@@ -61,7 +68,6 @@ class CurveHistogramObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
     int _penWidth;
     QColor _color;
     QString _label;

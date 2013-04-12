@@ -48,6 +48,8 @@ CDLObject::CDLObject (QString profile, QString name)
   _method = QString("HARAMI");
   _pen = 0.3;
   
+  _bars = new Bars;
+  
   _commandList << QString("update");
   _commandList << QString("dialog");
   _commandList << QString("output");
@@ -58,14 +60,13 @@ CDLObject::CDLObject (QString profile, QString name)
 
 CDLObject::~CDLObject ()
 {
-  clear();
+  delete _bars;
 }
 
 void
 CDLObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _bars->clear();
 }
 
 int
@@ -121,9 +122,37 @@ CDLObject::update (ObjectCommand *oc)
     return 0;
   }
 
-  QMap<int, Data *> data = toc.map();
+  Bars *obars = toc.getBars(_openKey);
+  if (! obars)
+  {
+    qDebug() << "CDLObject::update: invalid open bars" << _openKey;
+    return 0;
+  }
+
+  Bars *hbars = toc.getBars(_highKey);
+  if (! hbars)
+  {
+    qDebug() << "CDLObject::update: invalid high bars" << _highKey;
+    return 0;
+  }
+
+  Bars *lbars = toc.getBars(_lowKey);
+  if (! lbars)
+  {
+    qDebug() << "CDLObject::update: invalid low bars" << _lowKey;
+    return 0;
+  }
+
+  Bars *cbars = toc.getBars(_closeKey);
+  if (! cbars)
+  {
+    qDebug() << "CDLObject::update: invalid close bars" << _closeKey;
+    return 0;
+  }
+
+  QList<int> keys = cbars->_bars.keys();
+  int size = keys.size();
   
-  int size = data.size();
   TA_Real open[size];
   TA_Real high[size];
   TA_Real low[size];
@@ -132,25 +161,28 @@ CDLObject::update (ObjectCommand *oc)
   TA_Integer outBeg;
   TA_Integer outNb;
   int dpos = 0;
-  QMapIterator<int, Data *> it(data);
-  while (it.hasNext())
+  for (int pos = 0; pos < keys.size(); pos++)
   {
-    it.next();
-    Data *d = it.value();
-    
-    if (! d->contains(_openKey))
-      continue;
-    if (! d->contains(_highKey))
-      continue;
-    if (! d->contains(_lowKey))
-      continue;
-    if (! d->contains(_closeKey))
+    Bar *obar = obars->value(keys.at(pos));
+    if (! obar)
       continue;
 
-    open[dpos] = (TA_Real) d->value(_openKey).toDouble();
-    high[dpos] = (TA_Real) d->value(_highKey).toDouble();
-    low[dpos] = (TA_Real) d->value(_lowKey).toDouble();
-    close[dpos++] = (TA_Real) d->value(_closeKey).toDouble();
+    Bar *hbar = hbars->value(keys.at(pos));
+    if (! hbar)
+      continue;
+
+    Bar *lbar = lbars->value(keys.at(pos));
+    if (! lbar)
+      continue;
+
+    Bar *cbar = cbars->value(keys.at(pos));
+    if (! cbar)
+      continue;
+    
+    open[dpos] = (TA_Real) obar->v;
+    high[dpos] = (TA_Real) hbar->v;
+    low[dpos] = (TA_Real) lbar->v;
+    close[dpos++] = (TA_Real) cbar->v;
   }
 
   TA_RetCode rc = TA_SUCCESS;
@@ -345,13 +377,11 @@ CDLObject::update (ObjectCommand *oc)
   }
 
   int outLoop = outNb - 1;
-  it.toBack();
-  while (it.hasPrevious() && outLoop > -1)
+  int pos = keys.size() - 1;
+  while (pos > -1 && outLoop > -1)
   {
-    it.previous();
-    Data *b = new Data;
-    b->insert(_outputKey, out[outLoop--]);
-    _bars.insert(it.key(), b);
+    _bars->setValue(keys.at(pos), (double) out[outLoop--]);
+    pos--;
   }
   
   return 1;
@@ -391,7 +421,7 @@ int
 CDLObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_outputKey, _bars);
   return 1;
 }
 

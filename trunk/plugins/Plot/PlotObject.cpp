@@ -218,7 +218,7 @@ int
 PlotObject::setDates (ObjectCommand *oc)
 {
   QString key("input");
-  Object *input = (Object *) oc->getObject(key);
+  Bars *input = oc->getBars(key);
   if (! input)
   {
     qDebug() << "PlotObject::setDates: invalid" << key;
@@ -232,7 +232,7 @@ PlotObject::setDates (ObjectCommand *oc)
     qDebug() << "PlotObject::setDates: invalid" << key;
     return 0;
   }
-  
+
   key = QString("length");
   QString length = oc->getString(key);
   if (length.isEmpty())

@@ -2,7 +2,7 @@
 
 printf "Determining Qt version ..."
 qtVersionMajorRequired="4"
-qtVersionMinorRequired="8"
+qtVersionMinorRequired="6"
 qtMessage="This version of Qtstalker requires Qt$qtVersionMajorRequired.$qtVersionMinorRequired or better"
 qmakeCmd=`command -v qmake`
 qtVersionOk="false"

@@ -45,6 +45,8 @@ SARObject::SARObject (QString profile, QString name)
   _highKey = QString("H");
   _lowKey = QString("L");
   
+  _bars = new Bars;
+  
   _commandList << QString("update");
   _commandList << QString("dialog");
   _commandList << QString("output");
@@ -55,14 +57,13 @@ SARObject::SARObject (QString profile, QString name)
 
 SARObject::~SARObject ()
 {
-  clear();
+  delete _bars;
 }
 
 void
 SARObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _bars->clear();
 }
 
 int
@@ -118,28 +119,41 @@ SARObject::update (ObjectCommand *oc)
     return 0;
   }
 
-  QMap<int, Data *> data = toc.map();
+  Bars *hbars = toc.getBars(_highKey);
+  if (! hbars)
+  {
+    qDebug() << "SARObject::update: invalid high bars" << _highKey;
+    return 0;
+  }
+
+  Bars *lbars = toc.getBars(_lowKey);
+  if (! lbars)
+  {
+    qDebug() << "SARObject::update: invalid low bars" << _lowKey;
+    return 0;
+  }
+
+  QList<int> keys = hbars->_bars.keys();
+  int size = keys.size();
   
-  int size = data.size();
   TA_Real high[size];
   TA_Real low[size];
   TA_Real out[size];
   TA_Integer outBeg;
   TA_Integer outNb;
   int dpos = 0;
-  QMapIterator<int, Data *> it(data);
-  while (it.hasNext())
+  for (int pos = 0; pos < keys.size(); pos++)
   {
-    it.next();
-    Data *d = it.value();
-    
-    if (! d->contains(_highKey))
+    Bar *hbar = hbars->value(keys.at(pos));
+    if (! hbar)
       continue;
-    if (! d->contains(_lowKey))
+
+    Bar *lbar = lbars->value(keys.at(pos));
+    if (! lbar)
       continue;
-    
-    high[dpos] = (TA_Real) d->value(_highKey).toDouble();
-    low[dpos++] = (TA_Real) d->value(_lowKey).toDouble();
+
+    high[dpos] = (TA_Real) hbar->v;
+    low[dpos++] = (TA_Real) lbar->v;
   }
   
   TA_RetCode rc = TA_SAR(0,
@@ -159,13 +173,11 @@ SARObject::update (ObjectCommand *oc)
   }
 
   int outLoop = outNb - 1;
-  it.toBack();
-  while (it.hasPrevious() && outLoop > -1)
+  int pos = keys.size() - 1;
+  while (pos > -1 && outLoop > -1)
   {
-    it.previous();
-    Data *b = new Data;
-    b->insert(_outputKey, out[outLoop--]);
-    _bars.insert(it.key(), b);
+    _bars->setValue(keys.at(pos), (double) out[outLoop--]);
+    pos--;
   }
   
   return 1;
@@ -205,7 +217,7 @@ int
 SARObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_outputKey, _bars);
   return 1;
 }
 

@@ -23,9 +23,9 @@
 #include "ta_libc.h"
 #include "MADialog.h"
 #include "Util.h"
-//#include <glib.h>
 
 #include <QtDebug>
+#include <sys/time.h> 
 
 
 MAObject::MAObject (QString profile, QString name)
@@ -44,6 +44,8 @@ MAObject::MAObject (QString profile, QString name)
   _hasOutput = TRUE;
   _inputObject = QString("symbol");
   _inputKey = QString("C");
+  
+  _bars = new Bars;
   
   _commandList << QString("update");
   _commandList << QString("types");
@@ -65,14 +67,13 @@ MAObject::MAObject (QString profile, QString name)
 
 MAObject::~MAObject ()
 {
-  clear();
+  delete _bars;
 }
 
 void
 MAObject::clear ()
 {
-  qDeleteAll(_bars);
-  _bars.clear();
+  _bars->clear();
 }
 
 int
@@ -132,25 +133,31 @@ MAObject::update (ObjectCommand *oc)
     return 0;
   }
 
-  QMap<int, Data *> data = toc.map();
+  Bars *ibars = toc.getBars(_inputKey);
+  if (! ibars)
+  {
+    qDebug() << "MAObject::update: invalid input bars" << _inputKey;
+    return 0;
+  }
 
-
-//  GTimer *timer = g_timer_new();
+  // start timer
+  timeval t1, t2;
+  double elapsedTime;
+  gettimeofday(&t1, NULL);  
   
-  int size = data.size();
+  int size = ibars->_bars.size();
+  
   TA_Real input[size];
   TA_Real out[size];
   TA_Integer outBeg;
   TA_Integer outNb;
   int dpos = 0;
-  QMapIterator<int, Data *> it(data);
+  QMapIterator<int, Bar *> it(ibars->_bars);
   while (it.hasNext())
   {
     it.next();
-    Data *d = it.value();
-    
-    if (d->contains(_inputKey))
-      input[dpos++] = (TA_Real) d->value(_inputKey).toDouble();
+    Bar *d = it.value();
+    input[dpos++] = (TA_Real) d->v;
   }
   
   TA_RetCode rc = TA_MA(0,
@@ -173,16 +180,13 @@ MAObject::update (ObjectCommand *oc)
   while (it.hasPrevious() && outLoop > -1)
   {
     it.previous();
-    Data *b = new Data;
-    b->insert(_outputKey, out[outLoop--]);
-    _bars.insert(it.key(), b);
+    _bars->setValue(it.key(), (double) out[outLoop--]);
   }
 
-//  g_timer_stop(timer);
-//  gulong ms = 0;
-//  gdouble seconds = g_timer_elapsed(timer, &ms);
-//  g_print("MAObject::update: time elapsed %g\n", seconds);
-//  g_timer_destroy(timer);
+  gettimeofday(&t2, NULL);
+  elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+  elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+qDebug() << "MAObject::getMA: time elapsed" << elapsedTime;
   
   return 1;
 }
@@ -221,7 +225,7 @@ int
 MAObject::output (ObjectCommand *oc)
 {
   outputKeys(oc);
-  oc->setMap(_bars);
+  oc->setValue(_outputKey, _bars);
   return 1;
 }
 

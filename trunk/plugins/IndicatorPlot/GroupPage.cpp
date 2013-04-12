@@ -115,7 +115,6 @@ GroupPage::newGroup ()
 				       QLineEdit::Normal,
 				       tr("New Group"),
 				       &ok,
-				       0,
 				       0);
   if (name.isEmpty())
     return;

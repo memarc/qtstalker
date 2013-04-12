@@ -23,10 +23,10 @@
 #define PLUGIN_AROON_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "AROONDialog.h"
+#include "Bars.h"
 
 class AROONObject : public Object
 {
@@ -49,7 +49,8 @@ class AROONObject : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_ubars;
+    Bars *_dbars;
     QString _inputObject;
     QString _highKey;
     QString _lowKey;

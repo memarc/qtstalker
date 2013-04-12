@@ -31,6 +31,7 @@
 #include <QDateTime>
 
 #include "Data.h"
+#include "Bars.h"
 
 class ObjectCommand
 {
@@ -39,18 +40,11 @@ class ObjectCommand
     ObjectCommand (QString command);
     ~ObjectCommand ();
     void clear ();
-
+    void clearValues ();
     void setCommand (QString);
     QString command ();
-
     void setMsg (QString);
     QString msg ();
-
-    void clearMap ();
-    void setMap (QMap<int, Data *> &);
-    QMap<int, Data *> map ();
-
-    void clearValues ();
     void setValue(QString, int);
     void setValue(QString, double);
     void setValue(QString, bool);
@@ -62,6 +56,7 @@ class ObjectCommand
     void setValue(QString, QDateTime);
     void setValue(QString, QIcon);
     void setValue(QString, QFont);
+    void setValue(QString, Bars *);
     int getInt (QString);
     double getDouble (QString);
     bool getBool (QString);
@@ -77,11 +72,11 @@ class ObjectCommand
     QHash<QString, void *> getObjects ();
     QHash<QString, Data> getDatas ();
     void setDatas (QHash<QString, Data>);
+    Bars * getBars (QString);
 
   protected:
     QString _command;
     QString _msg;
-    QMap<int, Data *> _map;
     QHash<QString, int> _ints;
     QHash<QString, double> _doubles;
     QHash<QString, QString> _strings;
@@ -93,6 +88,7 @@ class ObjectCommand
     QHash<QString, bool> _bools;
     QHash<QString, QIcon> _icons;
     QHash<QString, QFont> _fonts;
+    QHash<QString, Bars *> _bars;
 };
 
 Q_DECLARE_METATYPE(ObjectCommand)

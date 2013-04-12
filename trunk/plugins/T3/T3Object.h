@@ -23,10 +23,10 @@
 #define PLUGIN_T3_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "T3Dialog.h"
+#include "Bars.h"
 
 class T3Object : public Object
 {
@@ -49,7 +49,7 @@ class T3Object : public Object
     
   private:
     QStringList _commandList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _inputKey;
     QString _outputKey;

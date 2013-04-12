@@ -23,10 +23,10 @@
 #define PLUGIN_ARITHMETIC_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "ArithmeticDialog.h"
+#include "Bars.h"
 
 class ArithmeticObject : public Object
 {
@@ -43,10 +43,10 @@ class ArithmeticObject : public Object
     int save (ObjectCommand *);
     int outputKeys (ObjectCommand *);
 
-    int add (QMap<int, Data *> &, QMap<int, Data *> &);
-    int div (QMap<int, Data *> &, QMap<int, Data *> &);
-    int mult (QMap<int, Data *> &, QMap<int, Data *> &);
-    int sub (QMap<int, Data *> &, QMap<int, Data *> &);
+    int add (Bars *, Bars *);
+    int div (Bars *, Bars *);
+    int mult (Bars *, Bars *);
+    int sub (Bars *, Bars *);
     
   public slots:    
     int message (ObjectCommand *);
@@ -55,7 +55,7 @@ class ArithmeticObject : public Object
   private:
     QStringList _commandList;
     QStringList _opList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _input2Object;
     QString _inputKey;

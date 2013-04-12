@@ -254,11 +254,26 @@ IndicatorObject::plot ()
       qDebug() << "IndicatorObject::plot: invalid" << key;
       return 0;
     }
+    
+    // get symbol output
+    ttoc.setCommand(QString("output"));
+    if (! symbol->message(&ttoc))
+    {
+      qDebug() << "IndicatorObject::plot: message error" << symbol->plugin() << key;
+      return 0;
+    }
+    
+    Bars *dates = ttoc.getBars(QString("D"));
+    if (! dates)
+    {
+      qDebug() << "IndicatorObject::plot: invalid Bars dates";
+      return 0;
+    }
   
     // set dates for plot
     key = QString("set_dates");
     ttoc.setCommand(key);
-    ttoc.setValue(QString("input"), (void *) symbol);
+    ttoc.setValue(QString("input"), dates);
     ttoc.setValue(QString("key"), QString("D"));
     ttoc.setValue(QString("length"), _length);
     if (! o->message(&ttoc))

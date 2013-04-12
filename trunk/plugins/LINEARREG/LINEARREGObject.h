@@ -23,10 +23,10 @@
 #define PLUGIN_LINEARREG_OBJECT_HPP
 
 #include <QStringList>
-#include <QMap>
 
 #include "Object.h"
 #include "LINEARREGDialog.h"
+#include "Bars.h"
 
 class LINEARREGObject : public Object
 {
@@ -50,7 +50,7 @@ class LINEARREGObject : public Object
   private:
     QStringList _commandList;
     QStringList _methodList;
-    QMap<int, Data *> _bars;
+    Bars *_bars;
     QString _inputObject;
     QString _inputKey;
     QString _outputKey;

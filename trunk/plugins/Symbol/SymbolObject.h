@@ -29,6 +29,7 @@
 #include "Object.h"
 #include "Data.h"
 #include "SymbolDialog.h"
+#include "Bars.h"
 
 
 class SymbolObject : public Object
@@ -56,6 +57,8 @@ class SymbolObject : public Object
     int getInterval (QString &length, int interval, QDateTime &sd, QDateTime &ed);
     int getInfo (QString symbol, Data &);
     int setInfo (Data &);
+
+    QHash<QString, Bars *> _bars;
     
   public slots:
     int message (ObjectCommand *);
@@ -64,7 +67,6 @@ class SymbolObject : public Object
   private:
     QStringList _commands;
     QStringList _lengths;
-    QMap<int, Data *> _bars;
     QString _path;
     QString _file;
     QString _exchange;
