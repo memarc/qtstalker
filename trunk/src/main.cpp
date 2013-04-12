@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
   QCoreApplication::setApplicationName("OTA");
   QTranslator tor(0);
 
-  QString i18nDir = QString("%1/OTA/i18n").arg(INSTALL_DATA_DIR);
+  QString i18nDir = QString("%1/OTA/i18n").arg(QDir::homePath());
   QString i18nFilename = QString("ota_%1").arg(QLocale::system().name());
   tor.load(i18nFilename, i18nDir);
   a.installTranslator( &tor );
