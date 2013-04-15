@@ -3,10 +3,11 @@
 * Qtstalker http://qtstalker.sourceforge.net/
 *
 * This source code documentation is generated on an irregular basis directly
-* from the CVS source code. Every component is listed, but not yet all properly
+* from the source code. Every component is listed, but not yet all properly
 * documented.
 *
-* Start at <a href="class_qtstalker_app.html">QtstalkerApp Class Reference</a>
+* Start at <a href="class_o_t_a.html">OTA Class Reference</a>
+* and <a href="class_plugin.html">Plugin Class Reference</a>
 * and <a href="hierarchy.html">Class Hierarchy</a>
 * and <a href="inherits.html">Graphical Class Hierarchy</a>.
 *

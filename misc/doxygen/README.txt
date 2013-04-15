@@ -1,7 +1,7 @@
 Using Doxygen-1.7.3
 
 To generate files into the "docs/api" directory, do this:
-]$ cd ..
+]$ cd top-level-of-qtstalker-source
 ]$ ./build-api-docs.sh
 
 See notes about Doxygen at docs/docs.html
