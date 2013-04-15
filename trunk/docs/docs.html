@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="qtstalker.css" media="screen">
+    <script src="qtstalker.js" type="text/javascript"> </script>
+    <title>Qtstalker: Documentation</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  </head>
+  <body>
+    <div id="content">
+      <div id="rightPanel">
+        <div id="version"></div>
+        <div id="toc">
+          <hr>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="toc.html">Table of Contents</a></li>
+          </ul>
+        </div>
+      </div>
+<!-- Content -->
+    <h1>Qtstalker: Documentation</h1>
+    <h2>Viewing the documentation</h2>
+    <p>
+      Local documentation can be viewed with a web browser, by opening
+      <code>/usr/local/share/doc/qtstalker/html/index.html</code>
+      and can be edited at
+      <code>path-to-your-source/qtstalker/docs/</code>
+    </p>
+    <p>
+      Source code documentation can be viewed with a web browser, by opening
+      <code>path-to-your-source/qtstalker/docs/api/index.html</code>
+      (If that documentation has not yet been generated using Doxygen,
+      then see the <a href="#doxygen">notes</a> below.)
+    </p>
+    <p>
+      Documentation can also be viewed via the Qt Assistant application, by
+      selecting from the Qtstalker "Help" menu.
+    </p>
+<!-- Keep for later if needed.
+    <p>
+      NOTE: The documentation has not yet been fully updated from the
+      previous version. A warning has been added to the right-hand side of
+      every document. As each document is updated, that warning is removed
+      by removing the
+      <code>&lt;div id="warnDoc"&gt;&lt;/div&gt;</code> element.
+    </p>
+-->
+    <h2 id="doxygen">Using Doxygen to generate documentation</h2>
+    <p>
+      Documentation for all of the Qtstalker source code can be generated.
+      Any comment blocks in the source code are added to the documentation.
+    </p>
+    <p>
+      This documentation generation system can also be used to document
+      the source code of your own indicators and other scripts.
+    </p>
+    <h3 id="requirements">Requirements</h3>
+    <p>
+      Install <a href="http://www.doxygen.org/">Doxygen</a> and
+      ensure that the 'doxygen' executables are available on your $PATH
+    </p>
+    <p>
+      Optionally install <a href="http://www.graphviz.org/">Graphviz</a>
+      to generate better diagrams.
+      Set <code>HAVE_DOT=YES</code> in the
+      <code>qtstalker/misc/doxygen/config.txt</code> file.
+    </p>
+    <p>
+      Optionally install
+      <a href="http://www.bigsister.ch/doxygenfilter/">DoxygenFilter</a>
+      (or another
+      <a href="http://www.stack.nl/~dimitri/doxygen/helpers.html">filter</a>)
+      to enable processing of Perl scripts.
+    </p>
+    <h3 id="configuration">Configuration</h3>
+    <p>
+      The configuration file for Doxygen is located at:
+      <code>qtstalker/misc/doxygen/config.txt</code>
+    </p>
+    <p>
+      By default it will process C++ and Python files.
+      With the abovementioned filter it will do Perl scripts and others.
+    </p>
+    <p>
+      To process your set of user indicators and other scripts, configure the
+      <code>INPUT</code> parameter of the <code>config.txt</code> to be:
+    </p>
+    <pre>INPUT = . /Users/me/Documents/work/qtstalker/scripts/</pre>
+    <p>
+      Note: Be sure to retain the configuration for the path "." (as shown above)
+      to process all of the Qtstalker source files.
+    </p>
+    <p>
+      See the Doxygen
+      <a href="http://www.stack.nl/~dimitri/doxygen/docblocks.html">instructions</a>
+      for documenting your source code.
+    </p>
+    <p>
+      There is one example for the Qtstalker Disparity indicator.
+      Note: Trying to keep documentation simple.
+    </p>
+    <h3 id="processing">Processing</h3>
+    <p>
+      In the top-level directory of the Qtstalker distribution, do
+      '<code>./build-api-docs.sh</code>' and
+      then do the normal Qtstalker build and install process 
+      '<code>make distclean; ./configure</code>' etc.
+    </p>
+    </div>
+<div id="bottom-spacer">
+<!-- Spacer so that can link directly to certain items in the list above. -->
+</div>
+  </body>
+</html>
